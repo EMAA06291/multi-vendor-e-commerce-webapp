@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
-import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
+import { SheetContent, SheetHeader, SheetTitle, SheetDescription } from "../ui/sheet";
 import UserCartItemsContent from "./cart-items-content";
 
 function UserCartWrapper({ cartItems, setOpenCartSheet }) {
@@ -23,10 +23,13 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
     <SheetContent className="sm:max-w-md">
       <SheetHeader>
         <SheetTitle>Your Cart</SheetTitle>
+        <SheetDescription>
+          Review your items before checkout
+        </SheetDescription>
       </SheetHeader>
       <div className="mt-8 space-y-4">
         {cartItems && cartItems.length > 0
-          ? cartItems.map((item) => <UserCartItemsContent cartItem={item} />)
+          ? cartItems.map((item) => <UserCartItemsContent key={item.productId || item._id || Math.random()} cartItem={item} />)
           : null}
       </div>
       <div className="mt-8 space-y-4">

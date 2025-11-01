@@ -55,10 +55,12 @@ const BecomeSellerForm = () => {
         userAgreement: false,
       });
     } catch (err) {
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || "Error submitting application";
       toast({
-        title: err.response?.data?.error || err.message || "Error submitting application",
+        title: errorMessage,
         variant: "destructive",
       });
+      console.error("Error submitting seller application:", err);
     } finally {
       setLoading(false);
     }
