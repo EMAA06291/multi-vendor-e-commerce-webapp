@@ -68,9 +68,12 @@ const fetchCartItems = async (req, res) => {
     });
 
     if (!cart) {
-      return res.status(404).json({
-        success: false,
-        message: "Cart not found!",
+      return res.status(200).json({
+        success: true,
+        data: {
+          items: [],
+          userId: userId
+        },
       });
     }
 
@@ -84,6 +87,7 @@ const fetchCartItems = async (req, res) => {
     }
 
     const populateCartItems = validItems.map((item) => ({
+      _id: item._id,
       productId: item.productId._id,
       image: item.productId.image,
       title: item.productId.title,
@@ -147,6 +151,7 @@ const updateCartItemQty = async (req, res) => {
     });
 
     const populateCartItems = cart.items.map((item) => ({
+      _id: item._id,
       productId: item.productId ? item.productId._id : null,
       image: item.productId ? item.productId.image : null,
       title: item.productId ? item.productId.title : "Product not found",
@@ -205,6 +210,7 @@ const deleteCartItem = async (req, res) => {
     });
 
     const populateCartItems = cart.items.map((item) => ({
+      _id: item._id,
       productId: item.productId ? item.productId._id : null,
       image: item.productId ? item.productId.image : null,
       title: item.productId ? item.productId.title : "Product not found",

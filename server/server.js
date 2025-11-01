@@ -1,3 +1,6 @@
+// Load environment variables from .env file if it exists
+require('dotenv').config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -12,6 +15,7 @@ const shopAddressRouter = require("./routes/shop/address-routes");
 const shopOrderRouter = require("./routes/shop/order-routes");
 const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
+const shopSellerRouter = require("./routes/shop/seller-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
@@ -19,10 +23,19 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 //create a database connection -> u can also
 //create a separate file for this and then import/use that file here
 
+// TODO: Replace this connection string with your MongoDB Atlas connection string
+// Format: mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority
+// Get it from MongoDB Atlas: Database > Connect > Connect your application
+
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://nadimhassan99921_db_user:kE1ewe4AGuMcO7nn@cluster0.zey0gnm.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority";
+
 mongoose
-  .connect("mongodb+srv://progbasma:EKlE47dbhFKufjmA@cluster0.rctpl.mongodb.net/ecommerceDBproject")
-  .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.log(error));
+  .connect(MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch((error) => {
+    console.log("❌ MongoDB connection error:", error.message);
+    console.log("Please check your connection string in server.js or .env file");
+  });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -54,6 +67,7 @@ app.use("/api/shop/address", shopAddressRouter);
 app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
+app.use("/api/seller", shopSellerRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 
