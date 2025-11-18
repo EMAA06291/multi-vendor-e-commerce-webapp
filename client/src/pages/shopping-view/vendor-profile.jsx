@@ -32,7 +32,17 @@ const VendorProfilePage = () => {
         }
       } catch (err) {
         console.error("Error fetching vendor data:", err);
-        setError("Failed to load vendor profile");
+        const errorMessage = 
+          err.response?.data?.message || 
+          err.response?.data?.error || 
+          err.message || 
+          "Failed to load vendor profile";
+        setError(errorMessage);
+        console.error("Full error details:", {
+          message: errorMessage,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
       } finally {
         setLoading(false);
       }

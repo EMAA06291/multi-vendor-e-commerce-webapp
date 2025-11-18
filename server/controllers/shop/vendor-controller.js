@@ -2,11 +2,20 @@ const Seller = require("../../models/Seller");
 const Product = require("../../models/Product");
 const ProductReview = require("../../models/Review");
 const User = require("../../models/User");
+const mongoose = require("mongoose");
 
 // Get vendor profile by sellerId
 const getVendorProfile = async (req, res) => {
   try {
     const { sellerId } = req.params;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vendor ID format",
+      });
+    }
 
     const seller = await Seller.findById(sellerId)
       .populate("userId", "userName email");
@@ -37,6 +46,14 @@ const getVendorProducts = async (req, res) => {
   try {
     const { sellerId } = req.params;
 
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vendor ID format",
+      });
+    }
+
     const products = await Product.find({ sellerId })
       .sort({ createdAt: -1 });
 
@@ -58,6 +75,14 @@ const getVendorProducts = async (req, res) => {
 const getVendorReviews = async (req, res) => {
   try {
     const { sellerId } = req.params;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vendor ID format",
+      });
+    }
 
     // First, get all product IDs for this vendor
     const vendorProducts = await Product.find({ sellerId }).select("_id");
