@@ -1,34 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import apiClient, { API_ENDPOINTS } from '@/config/api';
 
 const Sidebar = ({ search, setSearch }) => {
   const [activeCategory, setActiveCategory] = useState('Gaming');
+  const [recentPosts, setRecentPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const recentPosts = [
-    {
-      id: 1,
-      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=160&h=120&fit=crop",
-      title: "Once determined you need to come up with a name",
-      date: "July 12, 2025"
-    },
-    {
-      id: 2,
-      image: "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=160&h=120&fit=crop",
-      title: "Legal structure can make profit business",
-      date: "July 10, 2025"
-    },
-    {
-      id: 3,
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=160&h=120&fit=crop",
-      title: "Re-engagement objectives for developers",
-      date: "July 8, 2025"
-    },
-    {
-      id: 4,
-      image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=160&h=120&fit=crop",
-      title: "Customer experience optimization strategies",
-      date: "July 5, 2025"
-    }
-  ];
+  useEffect(() => {
+    const fetchRecentPosts = async () => {
+      try {
+        setLoading(true);
+        // Fetch only the 4 most recent published articles
+        const response = await apiClient.get(
+          `${API_ENDPOINTS.SHOP.BLOG.GET}?limit=4&published=true`
+        );
+        
+        if (response.data.success) {
+          setRecentPosts(response.data.articles || []);
+        }
+      } catch (err) {
+        console.error("Error fetching recent posts:", err);
+        // Keep empty array on error
+        setRecentPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentPosts();
+  }, []);
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "Unknown date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   const categories = [
     { name: "Gaming", count: 12 },
@@ -65,25 +77,38 @@ const Sidebar = ({ search, setSearch }) => {
       <div className="sidebar-widget recent-posts-widget">
         <h3 className="widget-title">Recent Posts</h3>
         <div className="recent-posts-list">
-          {recentPosts.map((post) => (
-            <a key={post.id} href="#" className="recent-post-item">
-              <div className="post-thumbnail">
-                <img 
-                  src={post.image} 
-                  alt={post.title}
-                  loading="lazy"
-                />
-                <div className="thumbnail-overlay"></div>
-              </div>
-              <div className="post-content">
-                <h4 className="post-title">{post.title}</h4>
-                <div className="post-meta">
-                  <i className="fa-regular fa-calendar"></i>
-                  <span>{post.date}</span>
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-2"></div>
+              <p className="text-sm text-white/60">Loading...</p>
+            </div>
+          ) : recentPosts.length === 0 ? (
+            <p className="text-sm text-white/60 text-center py-4">No recent posts</p>
+          ) : (
+            recentPosts.map((post) => (
+              <Link 
+                key={post._id} 
+                to={`/shop/article/${post._id}`}
+                className="recent-post-item"
+              >
+                <div className="post-thumbnail">
+                  <img 
+                    src={post.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=160&h=120&fit=crop"} 
+                    alt={post.title}
+                    loading="lazy"
+                  />
+                  <div className="thumbnail-overlay"></div>
                 </div>
-              </div>
-            </a>
-          ))}
+                <div className="post-content">
+                  <h4 className="post-title">{post.title}</h4>
+                  <div className="post-meta">
+                    <i className="fa-regular fa-calendar"></i>
+                    <span>{formatDate(post.createdAt)}</span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </div>
 

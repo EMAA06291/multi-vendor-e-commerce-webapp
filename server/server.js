@@ -16,8 +16,10 @@ const shopOrderRouter = require("./routes/shop/order-routes");
 const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
 const shopSellerRouter = require("./routes/shop/seller-routes");
+const shopVendorRouter = require("./routes/shop/vendor-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
+const blogRouter = require("./routes/blog/blog-routes");
 
 
 // MongoDB connection configuration
@@ -117,8 +119,10 @@ app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/seller", shopSellerRouter);
+app.use("/api/vendor", shopVendorRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
+app.use("/api/blog", blogRouter);
 
 
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));

@@ -34,6 +34,14 @@ const SellerSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    profilePic: {
+      type: String,
+      default: "",
+    },
+    backgroundImage: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

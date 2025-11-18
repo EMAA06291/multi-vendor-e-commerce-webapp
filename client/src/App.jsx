@@ -21,6 +21,9 @@ import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
 import BecomeSellerPage from "./pages/shopping-view/become-seller";
 import BlogPage from "./pages/shopping-view/blog";
+import ArticleViewPage from "./pages/shopping-view/article-view";
+import WriteArticlePage from "./pages/admin-view/write-article";
+import VendorProfilePage from "./pages/shopping-view/vendor-profile";
 import ContactPage from "./pages/shopping-view/contact";
 import CartPage from "./pages/shopping-view/cart-page";
 
@@ -87,6 +90,7 @@ function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="features" element={<AdminFeatures />} />
+          <Route path="write-article" element={<WriteArticlePage />} />
         </Route>
         <Route
           path="/shop"
@@ -105,6 +109,8 @@ function App() {
           <Route path="search" element={<SearchProducts />} />
           <Route path="become-seller" element={<BecomeSellerPage />} />
           <Route path="blog" element={<BlogPage />} />
+          <Route path="article/:id" element={<ArticleViewPage />} />
+          <Route path="vendor/:sellerId" element={<VendorProfilePage />} />
           <Route path="contact" element={<ContactPage />} />
         </Route>
         <Route path="/unauth-page" element={<UnauthPage />} />

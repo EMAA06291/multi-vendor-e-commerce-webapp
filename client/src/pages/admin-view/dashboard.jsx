@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { addFeatureImage, getFeatureImages } from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { featureImageList } = useSelector((state) => state.commonFeature);
 
   console.log(uploadedImageUrl, "uploadedImageUrl");
@@ -31,6 +33,14 @@ function AdminDashboard() {
 
   return (
     <div>
+      <div className="mb-6 flex gap-4">
+        <Button
+          onClick={() => navigate("/admin/write-article")}
+          className="bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:from-[#2a6bb8] hover:to-[#a875c9] text-white"
+        >
+          Write Article
+        </Button>
+      </div>
       <ProductImageUpload
         imageFile={imageFile}
         setImageFile={setImageFile}

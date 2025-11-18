@@ -96,6 +96,18 @@ export const API_ENDPOINTS = {
     },
     SELLER: "/api/seller",
     CONTACT: "/api/contact",
+    VENDOR: {
+      PROFILE: (sellerId) => `/api/vendor/profile/${sellerId}`,
+      PRODUCTS: (sellerId) => `/api/vendor/products/${sellerId}`,
+      REVIEWS: (sellerId) => `/api/vendor/reviews/${sellerId}`,
+    },
+    BLOG: {
+      GET: "/api/blog/get",
+      GET_BY_ID: (id) => `/api/blog/get/${id}`,
+      CREATE: "/api/blog/create",
+      UPDATE: (id) => `/api/blog/update/${id}`,
+      DELETE: (id) => `/api/blog/delete/${id}`,
+    },
   },
   // Common endpoints
   COMMON: {
