@@ -112,6 +112,12 @@ export const API_ENDPOINTS = {
       UPDATE: (id) => `/api/blog/update/${id}`,
       DELETE: (id) => `/api/blog/delete/${id}`,
     },
+    WISHLIST: {
+      ADD: "/api/shop/wishlist/add",
+      REMOVE: "/api/shop/wishlist/remove",
+      GET: (userId) => `/api/shop/wishlist/get/${userId}`,
+      CHECK: "/api/shop/wishlist/check",
+    },
   },
   // Common endpoints
   COMMON: {

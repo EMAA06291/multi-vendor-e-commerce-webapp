@@ -48,6 +48,7 @@ import { motion } from "framer-motion";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
+import WishlistButton from "@/components/common/wishlist-button";
 
 const categoriesWithIcon = [
   {
@@ -805,6 +806,9 @@ function ShoppingHome() {
                             className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
                             onClick={() => handleGetProductDetails(product._id)}
                           />
+                          <div className="absolute top-2 right-2">
+                            <WishlistButton productId={product._id} />
+                          </div>
                         </div>
 
                         <div className="p-6 flex flex-col items-center text-center space-y-3">
@@ -972,6 +976,9 @@ function ShoppingHome() {
                             className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
                             onClick={() => handleGetProductDetails(product._id)}
                           />
+                          <div className="absolute top-2 right-2">
+                            <WishlistButton productId={product._id} />
+                          </div>
                         </div>
 
                         <div className="p-6 flex flex-col items-center text-center space-y-3">

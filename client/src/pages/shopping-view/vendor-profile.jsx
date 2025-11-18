@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { useToast } from "@/components/ui/use-toast";
-import { Edit2, Save, X } from "lucide-react";
+import { Edit2, Save, X, Star } from "lucide-react";
 
 const VendorProfilePage = () => {
   const { sellerId } = useParams();
@@ -455,14 +454,66 @@ const VendorProfilePage = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {products.map((product) => (
-                      <ShoppingProductTile
-                        key={product._id}
-                        product={product}
-                        handleGetProductDetails={handleGetProductDetails}
-                        handleAddtoCart={handleAddtoCart}
-                      />
-                    ))}
+                    {products.map((product) => {
+                      const displayPrice = product.salePrice > 0 ? product.salePrice : product.price;
+                      const originalPrice = product.salePrice > 0 ? product.price : null;
+                      const rating = product.averageReview || 0;
+                      
+                      return (
+                        <Card
+                          key={product._id}
+                          className="border-0 shadow-md hover:shadow-lg transition-all bg-white/10 backdrop-blur-lg border-white/20 rounded-2xl overflow-hidden group"
+                        >
+                          <CardContent className="p-0">
+                            <div className="relative overflow-hidden">
+                              <img
+                                src={product.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"}
+                                alt={product.title}
+                                className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                                onClick={() => handleGetProductDetails(product._id)}
+                              />
+                            </div>
+
+                            <div className="p-6 flex flex-col items-center text-center space-y-3">
+                              <h3 className="text-lg font-semibold text-white">{product.title}</h3>
+                              <div className="flex items-center gap-2">
+                                <p className="text-white font-bold">
+                                  ${displayPrice}
+                                </p>
+                                {originalPrice && (
+                                  <p className="text-white/50 line-through text-sm">
+                                    ${originalPrice}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-1 text-yellow-400">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < Math.round(rating)
+                                        ? "fill-yellow-400"
+                                        : "opacity-30"
+                                    }`}
+                                  />
+                                ))}
+                                <span className="text-sm text-white/70 ml-1">
+                                  {rating.toFixed(1)}
+                                </span>
+                              </div>
+
+                              <Button
+                                className="w-full mt-4 bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white hover:opacity-90 transition-all duration-300"
+                                onClick={() => handleGetProductDetails(product._id)}
+                              >
+                                Buy Now
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -26,6 +26,7 @@ import WriteArticlePage from "./pages/admin-view/write-article";
 import VendorProfilePage from "./pages/shopping-view/vendor-profile";
 import ContactPage from "./pages/shopping-view/contact";
 import CartPage from "./pages/shopping-view/cart-page";
+import Wishlist from "./components/wishlist/Wishlist";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -112,6 +113,7 @@ function App() {
           <Route path="article/:id" element={<ArticleViewPage />} />
           <Route path="vendor/:sellerId" element={<VendorProfilePage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="wishlist" element={<Wishlist />} />
         </Route>
         <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
