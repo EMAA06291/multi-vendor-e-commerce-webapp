@@ -28,11 +28,9 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://nadimhassan99921_db_user:kE1ewe4AGuMcO7nn@cluster0.zey0gnm.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority";
 
 // MongoDB connection options
+// Note: useNewUrlParser and useUnifiedTopology are deprecated in mongoose 8.x
+// They are enabled by default, so we don't need to specify them
 const mongooseOptions = {
-  // Use the new URL parser
-  useNewUrlParser: true,
-  // Use the new server discovery and monitoring engine
-  useUnifiedTopology: true,
   // Connection pool settings
   maxPoolSize: 10, // Maintain up to 10 socket connections
   serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
@@ -79,12 +77,13 @@ const connectDB = async () => {
     console.error("❌ MongoDB connection error:", error.message);
     console.error("Please check your connection string in .env file or server.js");
     console.error("Error details:", error);
-    // Exit process with failure
-    process.exit(1);
+    // Don't exit immediately - allow server to start even if DB connection fails
+    // This allows the app to continue running and attempt reconnection
+    console.warn("⚠️  Server will continue to run. MongoDB will attempt to reconnect...");
   }
 };
 
-// Initialize database connection
+// Initialize database connection (non-blocking)
 connectDB();
 
 const app = express();
