@@ -18,6 +18,21 @@ module.exports = {
     },
     extend: {
       colors: {
+        "primary-100": "var(--primary-100)",
+        "primary-500": "var(--primary-500)",
+        "primary-600": "var(--primary-600)",
+        "secondary-500": "var(--secondary-500)",
+        "secondary-600": "var(--secondary-600)",
+        "accent-500": "var(--accent-500)",
+        "accent-600": "var(--accent-600)",
+        "text-900": "var(--text-900)",
+        "text-700": "var(--text-700)",
+        "bg-100": "var(--bg-100)",
+        "bg-200": "var(--bg-200)",
+        "card-bg": "var(--card-bg)",
+        "success-500": "var(--success-500)",
+        "warning-500": "var(--warning-500)",
+        "danger-500": "var(--danger-500)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -51,6 +66,15 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-footer": "var(--gradient-footer)",
+      },
+      boxShadow: {
+        "custom-1": "var(--shadow-1)",
+        "custom-2": "var(--shadow-2)",
       },
       borderRadius: {
         lg: "var(--radius)",

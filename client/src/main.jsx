@@ -8,6 +8,7 @@ import { Toaster } from "./components/ui/toaster.jsx";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 
 // Add all FontAwesome solid icons to library
 library.add(fas);
@@ -15,8 +16,10 @@ library.add(fas);
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Provider store={store}>
-      <App />
-      <Toaster />
+      <ThemeProvider>
+        <App />
+        <Toaster />
+      </ThemeProvider>
     </Provider>
   </BrowserRouter>
 );
