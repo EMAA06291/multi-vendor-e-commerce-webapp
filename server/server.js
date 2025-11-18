@@ -8,6 +8,7 @@ const cors = require("cors");
 const authRouter = require("./routes/auth/auth-routes");
 const adminProductsRouter = require("./routes/admin/products-routes");
 const adminOrderRouter = require("./routes/admin/order-routes");
+const adminVendorRouter = require("./routes/admin/vendor-routes");
 
 const shopProductsRouter = require("./routes/shop/products-routes");
 const shopCartRouter = require("./routes/shop/cart-routes");
@@ -18,6 +19,8 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 const shopSellerRouter = require("./routes/shop/seller-routes");
 const shopVendorRouter = require("./routes/shop/vendor-routes");
 const shopWishlistRouter = require("./routes/shop/wishlist-routes");
+const vendorProductsRouter = require("./routes/vendor/products-routes");
+const vendorOrdersRouter = require("./routes/vendor/order-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 const blogRouter = require("./routes/blog/blog-routes");
@@ -112,6 +115,7 @@ app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/admin/orders", adminOrderRouter);
+app.use("/api/admin/vendors", adminVendorRouter);
 
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopCartRouter);
@@ -122,6 +126,8 @@ app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/seller", shopSellerRouter);
 app.use("/api/vendor", shopVendorRouter);
 app.use("/api/shop/wishlist", shopWishlistRouter);
+app.use("/api/vendor/products", vendorProductsRouter);
+app.use("/api/vendor/orders", vendorOrdersRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 app.use("/api/blog", blogRouter);

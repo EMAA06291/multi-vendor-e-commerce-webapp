@@ -3,7 +3,6 @@ import AuthPage from "./pages/auth/auth-page";
 import AdminLayout from "./components/admin-view/layout";
 import AdminDashboard from "./pages/admin-view/dashboard";
 import AdminProducts from "./pages/admin-view/products";
-import AdminOrders from "./pages/admin-view/orders";
 import AdminFeatures from "./pages/admin-view/features";
 import ShoppingLayout from "./components/shopping-view/layout";
 import NotFound from "./pages/not-found";
@@ -27,6 +26,11 @@ import VendorProfilePage from "./pages/shopping-view/vendor-profile";
 import ContactPage from "./pages/shopping-view/contact";
 import CartPage from "./pages/shopping-view/cart-page";
 import Wishlist from "./components/wishlist/Wishlist";
+import VendorLayout from "./components/vendor-view/layout";
+import VendorDashboard from "./pages/vendor-view/dashboard";
+import VendorProducts from "./pages/vendor-view/products";
+import VendorOrders from "./pages/vendor-view/orders";
+import AdminVendors from "./pages/admin-view/vendors";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -89,9 +93,21 @@ function App() {
         >
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
-          <Route path="orders" element={<AdminOrders />} />
+          <Route path="vendors" element={<AdminVendors />} />
           <Route path="features" element={<AdminFeatures />} />
           <Route path="write-article" element={<WriteArticlePage />} />
+        </Route>
+        <Route
+          path="/vendor"
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated} user={user}>
+              <VendorLayout />
+            </CheckAuth>
+          }
+        >
+          <Route path="dashboard" element={<VendorDashboard />} />
+          <Route path="products" element={<VendorProducts />} />
+          <Route path="orders" element={<VendorOrders />} />
         </Route>
         <Route
           path="/shop"

@@ -47,6 +47,7 @@ const addProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sellerId: req.body.sellerId || null, // Optional: admin can assign product to a vendor
     });
 
     await newlyCreatedProduct.save();
@@ -67,7 +68,11 @@ const addProduct = async (req, res) => {
 
 const fetchAllProducts = async (req, res) => {
   try {
-    const listOfProducts = await Product.find({});
+    const listOfProducts = await Product.find({}).populate({
+      path: "sellerId",
+      select: "storeName status",
+      model: "Seller",
+    });
     res.status(200).json({
       success: true,
       data: listOfProducts,
@@ -95,6 +100,7 @@ const editProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sellerId,
     } = req.body;
 
     let findProduct = await Product.findById(id);
@@ -114,6 +120,10 @@ const editProduct = async (req, res) => {
     findProduct.totalStock = totalStock || findProduct.totalStock;
     findProduct.image = image || findProduct.image;
     findProduct.averageReview = averageReview || findProduct.averageReview;
+    // Admin can change sellerId (assign product to different vendor or remove vendor)
+    if (sellerId !== undefined) {
+      findProduct.sellerId = sellerId || null;
+    }
 
     await findProduct.save();
     res.status(200).json({

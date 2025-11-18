@@ -64,6 +64,29 @@ export const API_ENDPOINTS = {
       DETAILS: (id) => `/api/admin/orders/details/${id}`,
       UPDATE: (id) => `/api/admin/orders/update/${id}`,
     },
+    VENDORS: {
+      GET: "/api/admin/vendors/get",
+      PENDING: "/api/admin/vendors/pending",
+      DETAILS: (sellerId) => `/api/admin/vendors/${sellerId}`,
+      APPROVE: (sellerId) => `/api/admin/vendors/approve/${sellerId}`,
+      REJECT: (sellerId) => `/api/admin/vendors/reject/${sellerId}`,
+      SUSPEND: (sellerId) => `/api/admin/vendors/suspend/${sellerId}`,
+      DELETE: (sellerId) => `/api/admin/vendors/delete/${sellerId}`,
+    },
+  },
+  // Vendor endpoints
+  VENDOR: {
+    PRODUCTS: {
+      ADD: (sellerId) => `/api/vendor/products/add/${sellerId}`,
+      GET: (sellerId) => `/api/vendor/products/get/${sellerId}`,
+      EDIT: (sellerId, productId) => `/api/vendor/products/edit/${sellerId}/${productId}`,
+      DELETE: (sellerId, productId) => `/api/vendor/products/delete/${sellerId}/${productId}`,
+    },
+    ORDERS: {
+      GET: (sellerId) => `/api/vendor/orders/get/${sellerId}`,
+      DETAILS: (sellerId, orderId) => `/api/vendor/orders/details/${sellerId}/${orderId}`,
+      UPDATE: (sellerId, orderId) => `/api/vendor/orders/update/${sellerId}/${orderId}`,
+    },
   },
   // Shop endpoints
   SHOP: {
