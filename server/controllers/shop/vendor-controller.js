@@ -107,9 +107,88 @@ const getVendorReviews = async (req, res) => {
   }
 };
 
+// Update vendor profile
+const updateVendorProfile = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const { storeName, description, profilePic, backgroundImage } = req.body;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vendor ID format",
+      });
+    }
+
+    // Find the seller
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    // Update fields if provided
+    if (storeName !== undefined) {
+      seller.storeName = storeName.trim();
+    }
+    if (description !== undefined) {
+      seller.description = description.trim();
+    }
+    if (profilePic !== undefined) {
+      seller.profilePic = profilePic;
+    }
+    if (backgroundImage !== undefined) {
+      seller.backgroundImage = backgroundImage;
+    }
+
+    await seller.save();
+
+    res.json({
+      success: true,
+      message: "Vendor profile updated successfully",
+      vendor: seller,
+    });
+  } catch (error) {
+    console.error("Error updating vendor profile:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating vendor profile",
+      error: error.message,
+    });
+  }
+};
+
+// Get all featured vendors (approved sellers)
+const getFeaturedVendors = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const sellers = await Seller.find({ status: "approved" })
+      .populate("userId", "userName email")
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      vendors: sellers,
+    });
+  } catch (error) {
+    console.error("Error fetching featured vendors:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching featured vendors",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getVendorProfile,
   getVendorProducts,
   getVendorReviews,
+  updateVendorProfile,
+  getFeaturedVendors,
 };
 

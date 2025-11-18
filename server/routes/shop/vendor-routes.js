@@ -3,6 +3,8 @@ const {
   getVendorProfile,
   getVendorProducts,
   getVendorReviews,
+  updateVendorProfile,
+  getFeaturedVendors,
 } = require("../../controllers/shop/vendor-controller");
 
 const router = express.Router();
@@ -15,6 +17,12 @@ router.get("/products/:sellerId", getVendorProducts);
 
 // Get vendor reviews
 router.get("/reviews/:sellerId", getVendorReviews);
+
+// Update vendor profile
+router.put("/update/:sellerId", updateVendorProfile);
+
+// Get featured vendors
+router.get("/featured", getFeaturedVendors);
 
 module.exports = router;
 

@@ -58,11 +58,11 @@ export const addProductFormElements = [
     name: "category",
     componentType: "select",
     options: [
-      { id: "men", label: "Men" },
-      { id: "women", label: "Women" },
-      { id: "kids", label: "Kids" },
-      { id: "accessories", label: "Accessories" },
-      { id: "footwear", label: "Footwear" },
+      { id: "tailors", label: "Tailors" },
+      { id: "home-cooked-food", label: "Home Cooked Food" },
+      { id: "handmade-health-products", label: "Handmade health products" },
+      { id: "handmade-accessories", label: "Handmade accessories" },
+      { id: "catering", label: "Catering" },
     ],
   },
   {
@@ -113,28 +113,28 @@ export const shoppingViewHeaderMenuItems = [
     path: "/shop/listing",
   },
   {
-    id: "men",
-    label: "Men",
+    id: "tailors",
+    label: "Tailors",
     path: "/shop/listing",
   },
   {
-    id: "women",
-    label: "Women",
+    id: "home-cooked-food",
+    label: "Home Cooked Food",
     path: "/shop/listing",
   },
   {
-    id: "kids",
-    label: "Kids",
+    id: "handmade-health-products",
+    label: "Handmade health products",
     path: "/shop/listing",
   },
   {
-    id: "footwear",
-    label: "Footwear",
+    id: "handmade-accessories",
+    label: "Handmade accessories",
     path: "/shop/listing",
   },
   {
-    id: "accessories",
-    label: "Accessories",
+    id: "catering",
+    label: "Catering",
     path: "/shop/listing",
   },
   {
@@ -155,11 +155,11 @@ export const shoppingViewHeaderMenuItems = [
 ];
 
 export const categoryOptionsMap = {
-  men: "Men",
-  women: "Women",
-  kids: "Kids",
-  accessories: "Accessories",
-  footwear: "Footwear",
+  tailors: "Tailors",
+  "home-cooked-food": "Home Cooked Food",
+  "handmade-health-products": "Handmade health products",
+  "handmade-accessories": "Handmade accessories",
+  catering: "Catering",
 };
 
 export const brandOptionsMap = {
@@ -173,11 +173,11 @@ export const brandOptionsMap = {
 
 export const filterOptions = {
   category: [
-    { id: "men", label: "Men" },
-    { id: "women", label: "Women" },
-    { id: "kids", label: "Kids" },
-    { id: "accessories", label: "Accessories" },
-    { id: "footwear", label: "Footwear" },
+    { id: "tailors", label: "Tailors" },
+    { id: "home-cooked-food", label: "Home Cooked Food" },
+    { id: "handmade-health-products", label: "Handmade health products" },
+    { id: "handmade-accessories", label: "Handmade accessories" },
+    { id: "catering", label: "Catering" },
   ],
   brand: [
     { id: "nike", label: "Nike" },

@@ -79,4 +79,50 @@ const getProductDetails = async (req, res) => {
   }
 };
 
-module.exports = { getFilteredProducts, getProductDetails };
+// Get products with offers (salePrice > 0)
+const getProductsWithOffers = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const products = await Product.find({
+      salePrice: { $gt: 0 },
+    })
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    console.log("Error fetching products with offers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products with offers",
+      error: error.message,
+    });
+  }
+};
+
+// Get latest products
+const getLatestProducts = async (req, res) => {
+  try {
+    const { limit = 8 } = req.query;
+    const products = await Product.find({})
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    console.log("Error fetching latest products:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching latest products",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { getFilteredProducts, getProductDetails, getProductsWithOffers, getLatestProducts };

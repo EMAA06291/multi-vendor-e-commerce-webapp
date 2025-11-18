@@ -40,13 +40,14 @@ import {
   fetchProductDetails,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/components/ui/use-toast";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { motion } from "framer-motion";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import apiClient, { API_ENDPOINTS } from "@/config/api";
 
 const categoriesWithIcon = [
   {
@@ -55,17 +56,17 @@ const categoriesWithIcon = [
     img: tailor,
   },
   {
-    id: "food",
+    id: "home-cooked-food",
     label: "Home Cooked Food",
     img: pizza,
   },
   {
-    id: "handmade",
+    id: "handmade-health-products",
     label: "Handmade health products",
     img: Healthy,
   },
   {
-    id: "accessories",
+    id: "handmade-accessories",
     label: "Handmade accessories",
     img: accessories,
   },
@@ -76,97 +77,7 @@ const categoriesWithIcon = [
   },
 ];
 
-const featuredVendors = [
-  {
-    id: 1,
-    name: "Sarah's Custom Tailoring",
-    category: "Tailors",
-    rating: 4.9,
-    reviews: 127,
-    distance: "0.8 km",
-    image: tailor,
-    specialties: ["Wedding Dresses", "Men's Suits", "Alterations"],
-    deliveryTime: "3-5 days",
-    isVerified: true,
-    description: "Professional tailoring services with 15+ years experience",
-    priceRange: "$50 - $500",
-    location: "Downtown District",
-  },
-  {
-    id: 2,
-    name: "Mama's Kitchen",
-    category: "Home Cooked Food",
-    rating: 4.8,
-    reviews: 89,
-    distance: "1.2 km",
-    image: food,
-    specialties: ["Traditional Dishes", "Healthy Meals", "Catering"],
-    deliveryTime: "30-45 min",
-    isVerified: true,
-    description: "Authentic home-cooked meals made with love",
-    priceRange: "$8 - $25",
-    location: "Residential Area",
-  },
-  {
-    id: 3,
-    name: "Artisan Crafts",
-    category: "Handmade Products",
-    rating: 4.7,
-    reviews: 156,
-    distance: "2.1 km",
-    image: Healthy,
-    specialties: ["Pottery", "Jewelry", "Home Decor"],
-    deliveryTime: "1-2 days",
-    isVerified: true,
-    description: "Unique handmade items crafted by local artists",
-    priceRange: "$15 - $200",
-    location: "Arts Quarter",
-  },
-  {
-    id: 4,
-    name: "Chef Maria's Catering",
-    category: "Catering",
-    rating: 4.9,
-    reviews: 203,
-    distance: "0.5 km",
-    image: catering,
-    specialties: ["Event Catering", "Corporate Meals", "Wedding Food"],
-    deliveryTime: "1-2 hours",
-    isVerified: true,
-    description: "Premium catering services for all occasions",
-    priceRange: "$25 - $100",
-    location: "Business District",
-  },
-];
-
-const specialOffers = [
-  {
-    id: 1,
-    title: "New Tailor Discount",
-    description: "Get 20% off on your first custom order from any local tailor",
-    discount: "20% OFF",
-    image: tailor,
-    code: "TAILOR20",
-  },
-  {
-    id: 2,
-    title: "Home Cooked Special",
-    description:
-      "Free delivery on orders above $25 from home-cooked food vendors",
-    discount: "FREE DELIVERY",
-    image: food2,
-    code: "FREEDEL25",
-  },
-  {
-    id: 3,
-    title: "Handmade Weekend",
-    description: "15% off all handmade products this weekend only",
-    discount: "15% OFF",
-    image: Healthy,
-    code: "HANDMADE15",
-  },
-];
-
+// Static testimonials (can be made dynamic later)
 const testimonials = [
   {
     id: 1,
@@ -191,87 +102,6 @@ const testimonials = [
     rating: 5,
     text: "I love the unique pottery pieces from Artisan Crafts. Each piece tells a story.",
     vendor: "Artisan Crafts",
-  },
-];
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "Supporting Local Artisans: Why It Matters",
-    excerpt:
-      "Discover the impact of supporting local businesses and how it strengthens our community.",
-    image: accessories,
-    author: "LocalCraft Team",
-    date: "2025-10-10",
-    readTime: "5 min read",
-    category: "Community",
-  },
-  {
-    id: 2,
-    title: "The Art of Custom Tailoring: A Complete Guide",
-    excerpt:
-      "Everything you need to know about getting custom clothing made by local tailors.",
-    image: cloth1,
-    author: "Sarah's Custom Tailoring",
-    date: "2025-10-12",
-    readTime: "8 min read",
-    category: "Fashion",
-  },
-  {
-    id: 3,
-    title: "Home-Cooked Meals: The Secret to Healthy Living",
-    excerpt:
-      "Why choosing home-cooked meals over fast food can transform your health and lifestyle.",
-    image: food,
-    author: "Mama's Kitchen",
-    date: "2025-10-15",
-    readTime: "6 min read",
-    category: "Health",
-  },
-];
-
-const demoProducts = [
-  {
-    id: "p1",
-    title: "Handmade accessories",
-    price: "$45",
-    rating: 4.8,
-    image: accessories,
-  },
-  {
-    id: "p2",
-    title: "Custom Tailored Shirt",
-    price: "$70",
-    rating: 4.9,
-    image: tailor,
-  },
-  {
-    id: "p3",
-    title: "Catering Specials",
-    price: "$120",
-    rating: 4.7,
-    image: catering,
-  },
-  {
-    id: "p4",
-    title: "Healthy Meal Box",
-    price: "$28",
-    rating: 4.6,
-    image: food2,
-  },
-  {
-    id: "p5",
-    title: "Gourmet Bakery",
-    price: "$15",
-    rating: 4.5,
-    image: food,
-  },
-  {
-    id: "p6",
-    title: "Organic Essentials",
-    price: "$55",
-    rating: 4.8,
-    image: Healthy,
   },
 ];
 
@@ -304,6 +134,18 @@ function ShoppingHome() {
   );
   const { user } = useSelector((state) => state.auth);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  
+  // Dynamic data states
+  const [specialOffers, setSpecialOffers] = useState([]);
+  const [featuredVendors, setFeaturedVendors] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [popularProducts, setPopularProducts] = useState([]);
+  const [loadingOffers, setLoadingOffers] = useState(true);
+  const [loadingVendors, setLoadingVendors] = useState(true);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [loadingBlog, setLoadingBlog] = useState(true);
+  const [loadingPopular, setLoadingPopular] = useState(true);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -317,6 +159,106 @@ function ShoppingHome() {
       offset: 120,
     });
     AOS.refresh();
+  }, []);
+
+  // Fetch special offers (products with salePrice > 0)
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        setLoadingOffers(true);
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.PRODUCTS.GET_OFFERS, {
+          params: { limit: 6 },
+        });
+        if (response.data.success) {
+          setSpecialOffers(response.data.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching offers:", error);
+      } finally {
+        setLoadingOffers(false);
+      }
+    };
+    fetchOffers();
+  }, []);
+
+  // Fetch featured vendors
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        setLoadingVendors(true);
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.VENDOR.FEATURED, {
+          params: { limit: 6 },
+        });
+        if (response.data.success) {
+          setFeaturedVendors(response.data.vendors || []);
+        }
+      } catch (error) {
+        console.error("Error fetching vendors:", error);
+      } finally {
+        setLoadingVendors(false);
+      }
+    };
+    fetchVendors();
+  }, []);
+
+  // Fetch featured products (latest products)
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        setLoadingFeatured(true);
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.PRODUCTS.GET_LATEST, {
+          params: { limit: 6 },
+        });
+        if (response.data.success) {
+          setFeaturedProducts(response.data.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching featured products:", error);
+      } finally {
+        setLoadingFeatured(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  // Fetch blog posts
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        setLoadingBlog(true);
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.BLOG.GET, {
+          params: { limit: 6, published: true },
+        });
+        if (response.data.success) {
+          setBlogPosts(response.data.articles || []);
+        }
+      } catch (error) {
+        console.error("Error fetching blog posts:", error);
+      } finally {
+        setLoadingBlog(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  // Fetch popular products (for Popular Marketplace Picks)
+  useEffect(() => {
+    const fetchPopular = async () => {
+      try {
+        setLoadingPopular(true);
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.PRODUCTS.GET_LATEST, {
+          params: { limit: 8 },
+        });
+        if (response.data.success) {
+          setPopularProducts(response.data.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching popular products:", error);
+      } finally {
+        setLoadingPopular(false);
+      }
+    };
+    fetchPopular();
   }, []);
 
   function handleNavigateToListingPage(getCurrentItem, section) {
@@ -333,7 +275,7 @@ function ShoppingHome() {
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-  function handleAddtoCart(getCurrentProductId) {
+  function handleAddtoCart(getCurrentProductId, getTotalStock) {
     if (!user?.id) {
       toast({
         title: "Please login to add items to cart",
@@ -359,28 +301,27 @@ function ShoppingHome() {
     });
   }
 
-  function handleCustomOrder() {
-    toast({
-      title: "Custom order flow coming soon",
-    });
+  function handleCustomOrder(vendorId) {
+    if (vendorId) {
+      navigate(`/shop/vendor/${vendorId}`);
+    } else {
+      toast({
+        title: "Custom order flow coming soon",
+      });
+    }
   }
 
-  function handleViewStore() {
-    navigate("/shop/listing");
+  function handleViewStore(vendorId) {
+    if (vendorId) {
+      navigate(`/shop/vendor/${vendorId}`);
+    } else {
+      navigate("/shop/listing");
+    }
   }
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
-
-  useEffect(() => {
-    dispatch(
-      fetchAllFilteredProducts({
-        filterParams: {},
-        sortParams: "price-lowtohigh",
-      })
-    );
-  }, [dispatch]);
 
   const cardInView = {
     hidden: { opacity: 0, y: 18 },
@@ -643,55 +584,79 @@ function ShoppingHome() {
             </p>
           </div>
 
-          <Swiper
-            modules={[SwiperNavigation, Pagination, Autoplay]}
-            navigation={true}
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 5500, disableOnInteraction: false }}
-            spaceBetween={30}
-            slidesPerView={1}
-            loop={true}
-            speed={700}
-            grabCursor={true}
-            breakpoints={{
-              768: {
-                slidesPerView: 2,
-              },
-              1024: {
-                slidesPerView: 3,
-              },
-            }}
-            className="pb-12"
-          >
-            {specialOffers.map((offer) => (
-              <SwiperSlide key={offer.id}>
-                <Card className="relative border-0 shadow-custom-2 h-full rounded-2xl overflow-hidden group">
-                  <img
-                    src={offer.image}
-                    alt={offer.title}
-                    className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+          {loadingOffers ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">Loading offers...</p>
+            </div>
+          ) : specialOffers.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">No special offers available at the moment.</p>
+            </div>
+          ) : (
+            <Swiper
+              modules={[SwiperNavigation, Pagination, Autoplay]}
+              navigation={true}
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 5500, disableOnInteraction: false }}
+              spaceBetween={30}
+              slidesPerView={1}
+              loop={specialOffers.length > 3}
+              speed={700}
+              grabCursor={true}
+              breakpoints={{
+                768: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 3,
+                },
+              }}
+              className="pb-12"
+            >
+              {specialOffers.map((offer) => {
+                const discountPercent = offer.salePrice && offer.price
+                  ? Math.round(((offer.price - offer.salePrice) / offer.price) * 100)
+                  : 0;
+                return (
+                  <SwiperSlide key={offer._id}>
+                    <Card 
+                      className="relative border-0 shadow-custom-2 h-full rounded-2xl overflow-hidden group cursor-pointer"
+                      onClick={() => handleGetProductDetails(offer._id)}
+                    >
+                      <img
+                        src={offer.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"}
+                        alt={offer.title}
+                        className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
 
-                  <CardContent className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-                    <Badge className="bg-white/20 text-white mb-3 w-fit">
-                      {offer.discount}
-                    </Badge>
-                    <h3 className="text-2xl font-bold mb-2">{offer.title}</h3>
-                    <p className="text-white/90 mb-4">{offer.description}</p>
-                    <div className="flex items-center justify-between">
-                      <Button className="bg-white text-primary-600 font-semibold hover:bg-white/90">
-                        Claim Offer
-                      </Button>
-                      <div className="text-sm text-white/70">
-                        Code: {offer.code}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                      <CardContent className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+                        <Badge className="bg-white/20 text-white mb-3 w-fit">
+                          {discountPercent}% OFF
+                        </Badge>
+                        <h3 className="text-2xl font-bold mb-2">{offer.title}</h3>
+                        <p className="text-white/90 mb-4 line-clamp-2">{offer.description}</p>
+                        <div className="flex items-center justify-between">
+                          <Button 
+                            className="bg-white text-primary-600 font-semibold hover:bg-white/90"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGetProductDetails(offer._id);
+                            }}
+                          >
+                            View Product
+                          </Button>
+                          <div className="text-sm text-white/70">
+                            ${offer.salePrice || offer.price}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </SwiperSlide>
+                );
+              })}
+            </Swiper>
+          )}
         </div>
       </section>
 
@@ -706,116 +671,93 @@ function ShoppingHome() {
             </p>
           </div>
 
-          <Swiper
-            modules={[SwiperNavigation, Pagination, Autoplay]}
-            navigation={true}
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 6000, disableOnInteraction: false }}
-            spaceBetween={30}
-            slidesPerView={1}
-            loop={true}
-            speed={700}
-            grabCursor={true}
-            breakpoints={{
-              640: {
-                slidesPerView: 2,
-              },
-              1024: {
-                slidesPerView: 3,
-              },
-            }}
-            className="pb-12"
-          >
-            {featuredVendors.map((vendor) => (
-              <SwiperSlide key={vendor.id}>
-                <Card className="group hover:shadow-custom-2 transition-all duration-300 hover:-translate-y-1 border-0 bg-white dark:bg-slate-900 h-full rounded-2xl overflow-hidden">
-                  <div className="relative w-full h-48">
-                    <img
-                      src={vendor.image}
-                      alt={vendor.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+          {loadingVendors ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">Loading vendors...</p>
+            </div>
+          ) : featuredVendors.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">No featured vendors available at the moment.</p>
+            </div>
+          ) : (
+            <Swiper
+              modules={[SwiperNavigation, Pagination, Autoplay]}
+              navigation={true}
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 6000, disableOnInteraction: false }}
+              spaceBetween={30}
+              slidesPerView={1}
+              loop={featuredVendors.length > 3}
+              speed={700}
+              grabCursor={true}
+              breakpoints={{
+                640: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 3,
+                },
+              }}
+              className="pb-12"
+            >
+              {featuredVendors.map((vendor) => (
+                <SwiperSlide key={vendor._id}>
+                  <Card className="group hover:shadow-custom-2 transition-all duration-300 hover:-translate-y-1 border-0 bg-white dark:bg-slate-900 h-full rounded-2xl overflow-hidden">
+                    <div className="relative w-full h-48">
+                      <img
+                        src={vendor.backgroundImage || vendor.profilePic || "https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1920&auto=format&fit=crop"}
+                        alt={vendor.storeName}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
-                    {vendor.isVerified && (
-                      <Badge className="absolute top-4 right-4 bg-success-500 text-white flex items-center gap-1 shadow-md">
-                        <Shield className="w-3 h-3" />
-                        Verified
-                      </Badge>
-                    )}
-                  </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
+                      {vendor.status === "approved" && (
+                        <Badge className="absolute top-4 right-4 bg-success-500 text-white flex items-center gap-1 shadow-md">
+                          <Shield className="w-3 h-3" />
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
 
-                  <CardContent className="p-6 flex flex-col h-full">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1">
-                          {vendor.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {vendor.category}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="font-semibold text-gray-800 dark:text-gray-200">
-                            {vendor.rating}
-                          </span>
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1">
+                            {vendor.storeName}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {vendor.storeCategory}
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {vendor.reviews} reviews
+                      </div>
+
+                      <div className="mb-4 flex-grow">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                          {vendor.description}
                         </p>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Navigation className="w-4 h-4" />
-                        {vendor.distance}
+                      <div className="flex gap-2 mt-auto">
+                        <Button
+                          className="flex-1 bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:opacity-90"
+                          onClick={() => handleViewStore(vendor._id)}
+                        >
+                          View Store
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleCustomOrder(vendor._id)}
+                          className="border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-400 dark:hover:text-black"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {vendor.deliveryTime}
-                      </div>
-                    </div>
-
-                    <div className="mb-4 flex-grow">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Specialties:
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {vendor.specialties.map((specialty, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="text-xs bg-gray-100 dark:bg-slate-800 dark:text-gray-300"
-                          >
-                            {specialty}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-auto">
-                      <Button
-                        className="flex-1 bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:opacity-90"
-                        onClick={handleViewStore}
-                      >
-                        View Store
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleCustomOrder}
-                        className="border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-400 dark:hover:text-black"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                    </CardContent>
+                  </Card>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
         </div>
       </section>
 
@@ -830,60 +772,84 @@ function ShoppingHome() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {demoProducts.map((product, idx) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                className="group"
-              >
-                <Card className="border-0 shadow-md hover:shadow-lg transition-all bg-white dark:bg-slate-800 dark:text-white rounded-2xl overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-
-                    <div className="p-6 flex flex-col items-center text-center space-y-3">
-                      <h3 className="text-lg font-semibold">{product.title}</h3>
-                      <p className="text-primary-600 dark:text-primary-400 font-bold">
-                        {product.price}
-                      </p>
-
-                      <div className="flex items-center gap-1 text-yellow-500">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.round(product.rating)
-                                ? "fill-yellow-500"
-                                : "opacity-30"
-                            }`}
+          {loadingFeatured ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">Loading featured products...</p>
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">No featured products available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProducts.map((product, idx) => {
+                const displayPrice = product.salePrice > 0 ? product.salePrice : product.price;
+                const originalPrice = product.salePrice > 0 ? product.price : null;
+                const rating = product.averageReview || 0;
+                
+                return (
+                  <motion.div
+                    key={product._id}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    className="group"
+                  >
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-all bg-white dark:bg-slate-800 dark:text-white rounded-2xl overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="relative overflow-hidden">
+                          <img
+                            src={product.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"}
+                            alt={product.title}
+                            className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                            onClick={() => handleGetProductDetails(product._id)}
                           />
-                        ))}
-                        <span className="text-sm text-gray-500 dark:text-gray-300 ml-1">
-                          {product.rating}
-                        </span>
-                      </div>
+                        </div>
 
-                      <Button
-                        className="w-full mt-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:opacity-90 transition-all duration-300"
-                        onClick={handleViewStore}
-                      >
-                        Buy Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                        <div className="p-6 flex flex-col items-center text-center space-y-3">
+                          <h3 className="text-lg font-semibold">{product.title}</h3>
+                          <div className="flex items-center gap-2">
+                            <p className="text-primary-600 dark:text-primary-400 font-bold">
+                              ${displayPrice}
+                            </p>
+                            {originalPrice && (
+                              <p className="text-gray-400 line-through text-sm">
+                                ${originalPrice}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 text-yellow-500">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < Math.round(rating)
+                                    ? "fill-yellow-500"
+                                    : "opacity-30"
+                                }`}
+                              />
+                            ))}
+                            <span className="text-sm text-gray-500 dark:text-gray-300 ml-1">
+                              {rating.toFixed(1)}
+                            </span>
+                          </div>
+
+                          <Button
+                            className="w-full mt-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:opacity-90 transition-all duration-300"
+                            onClick={() => handleGetProductDetails(product._id)}
+                          >
+                            Buy Now
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -973,22 +939,84 @@ function ShoppingHome() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productList && productList.length > 0 ? (
-              productList.map((productItem) => (
-                <ShoppingProductTile
-                  key={productItem._id || productItem.id}
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                  handleAddtoCart={handleAddtoCart}
-                />
-              ))
-            ) : (
-              <p className="col-span-full text-center text-muted dark:text-slate-300">
-                Products will appear here once they are added.
-              </p>
-            )}
-          </div>
+          {loadingPopular ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">Loading products...</p>
+            </div>
+          ) : popularProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">No products available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {popularProducts.map((product, idx) => {
+                const displayPrice = product.salePrice > 0 ? product.salePrice : product.price;
+                const originalPrice = product.salePrice > 0 ? product.price : null;
+                const rating = product.averageReview || 0;
+                
+                return (
+                  <motion.div
+                    key={product._id}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    className="group"
+                  >
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-all bg-white dark:bg-slate-800 dark:text-white rounded-2xl overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="relative overflow-hidden">
+                          <img
+                            src={product.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"}
+                            alt={product.title}
+                            className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                            onClick={() => handleGetProductDetails(product._id)}
+                          />
+                        </div>
+
+                        <div className="p-6 flex flex-col items-center text-center space-y-3">
+                          <h3 className="text-lg font-semibold">{product.title}</h3>
+                          <div className="flex items-center gap-2">
+                            <p className="text-primary-600 dark:text-primary-400 font-bold">
+                              ${displayPrice}
+                            </p>
+                            {originalPrice && (
+                              <p className="text-gray-400 line-through text-sm">
+                                ${originalPrice}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 text-yellow-500">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < Math.round(rating)
+                                    ? "fill-yellow-500"
+                                    : "opacity-30"
+                                }`}
+                              />
+                            ))}
+                            <span className="text-sm text-gray-500 dark:text-gray-300 ml-1">
+                              {rating.toFixed(1)}
+                            </span>
+                          </div>
+
+                          <Button
+                            className="w-full mt-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:opacity-90 transition-all duration-300"
+                            onClick={() => handleGetProductDetails(product._id)}
+                          >
+                            Buy Now
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -1096,46 +1124,61 @@ function ShoppingHome() {
             }}
             className="pb-12"
           >
-            {blogPosts.map((post) => (
-              <SwiperSlide key={post.id}>
-                <Card className="group hover:shadow-custom-2 transition-all duration-300 hover:-translate-y-1 border-0 bg-white dark:bg-slate-900 overflow-hidden h-full rounded-2xl">
-                  <div className="relative w-full h-48 overflow-hidden">
-                    <img
-                      src={post.image}
-                      alt={post.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+            {loadingBlog ? (
+              <div className="text-center py-12">
+                <p className="text-muted dark:text-slate-300">Loading blog posts...</p>
+              </div>
+            ) : blogPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted dark:text-slate-300">No blog posts available at the moment.</p>
+              </div>
+            ) : (
+              blogPosts.map((post) => (
+                <SwiperSlide key={post._id}>
+                  <Link to={`/shop/article/${post._id}`}>
+                    <Card className="group hover:shadow-custom-2 transition-all duration-300 hover:-translate-y-1 border-0 bg-white dark:bg-slate-900 overflow-hidden h-full rounded-2xl cursor-pointer">
+                      <div className="relative w-full h-48 overflow-hidden">
+                        <img
+                          src={post.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1470&auto=format&fit=crop"}
+                          alt={post.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
 
-                    <Badge className="absolute top-4 left-4 bg-primary-500 text-white shadow-md">
-                      {post.category}
-                    </Badge>
-                  </div>
-
-                  <CardContent className="p-6 flex flex-col h-full">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 flex-grow">
-                      {post.excerpt}
-                    </p>
-
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mt-auto">
-                      <div className="flex items-center gap-2">
-                        <span>{post.author}</span>
-                        <span>•</span>
-                        <span>{post.readTime}</span>
+                        <Badge className="absolute top-4 left-4 bg-primary-500 text-white shadow-md">
+                          {post.category || "General"}
+                        </Badge>
                       </div>
-                      <span>{new Date(post.date).toLocaleDateString()}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </SwiperSlide>
-            ))}
+
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-4 flex-grow line-clamp-3">
+                          {post.excerpt || post.content?.substring(0, 150) + "..."}
+                        </p>
+
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mt-auto">
+                          <div className="flex items-center gap-2">
+                            <span>{post.author || "Admin"}</span>
+                            <span>•</span>
+                            <span>{post.views || 0} views</span>
+                          </div>
+                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </SwiperSlide>
+              ))
+            )}
           </Swiper>
 
           <div className="text-center mt-12">
-            <Button className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl">
+            <Button 
+              className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl"
+              onClick={() => navigate("/shop/blog")}
+            >
               View All Posts
             </Button>
           </div>

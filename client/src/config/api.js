@@ -70,6 +70,8 @@ export const API_ENDPOINTS = {
     PRODUCTS: {
       GET: "/api/shop/products/get",
       GET_BY_ID: (id) => `/api/shop/products/get/${id}`,
+      GET_OFFERS: "/api/shop/products/offers",
+      GET_LATEST: "/api/shop/products/latest",
     },
     CART: {
       ADD: "/api/shop/cart/add",
@@ -100,6 +102,8 @@ export const API_ENDPOINTS = {
       PROFILE: (sellerId) => `/api/vendor/profile/${sellerId}`,
       PRODUCTS: (sellerId) => `/api/vendor/products/${sellerId}`,
       REVIEWS: (sellerId) => `/api/vendor/reviews/${sellerId}`,
+      UPDATE: (sellerId) => `/api/vendor/update/${sellerId}`,
+      FEATURED: "/api/vendor/featured",
     },
     BLOG: {
       GET: "/api/blog/get",

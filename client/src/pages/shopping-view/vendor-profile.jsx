@@ -1,18 +1,54 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Card, CardContent } from "@/components/ui/card";
+import ProductImageUpload from "@/components/admin-view/image-upload";
+import { useToast } from "@/components/ui/use-toast";
+import { Edit2, Save, X } from "lucide-react";
 
 const VendorProfilePage = () => {
   const { sellerId } = useParams();
+  const { user } = useSelector((state) => state.auth);
+  const { toast } = useToast();
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [activeTab, setActiveTab] = useState("products"); // "products" or "reviews"
+  const [activeTab, setActiveTab] = useState("products");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
+    storeName: "",
+    description: "",
+    profilePic: "",
+    backgroundImage: "",
+  });
+
+  // Image upload states
+  const [profilePicFile, setProfilePicFile] = useState(null);
+  const [profilePicUrl, setProfilePicUrl] = useState("");
+  const [profilePicLoading, setProfilePicLoading] = useState(false);
+
+  const [backgroundImageFile, setBackgroundImageFile] = useState(null);
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
+  const [backgroundImageLoading, setBackgroundImageLoading] = useState(false);
+
+  // Check if current user is the vendor owner
+  const isVendorOwner = useMemo(() => {
+    if (!user || !vendor || !vendor.userId) return false;
+    const userId = user.id || user._id;
+    const vendorUserId = vendor.userId._id || vendor.userId;
+    return userId && vendorUserId && userId.toString() === vendorUserId.toString();
+  }, [user, vendor]);
 
   useEffect(() => {
     const fetchVendorData = async () => {
@@ -25,6 +61,13 @@ const VendorProfilePage = () => {
 
         if (vendorRes.data.success) {
           setVendor(vendorRes.data.vendor);
+          // Initialize edit form data
+          setEditFormData({
+            storeName: vendorRes.data.vendor.storeName || "",
+            description: vendorRes.data.vendor.description || "",
+            profilePic: vendorRes.data.vendor.profilePic || "",
+            backgroundImage: vendorRes.data.vendor.backgroundImage || "",
+          });
         }
 
         if (productsRes.data.success) {
@@ -32,17 +75,12 @@ const VendorProfilePage = () => {
         }
       } catch (err) {
         console.error("Error fetching vendor data:", err);
-        const errorMessage = 
-          err.response?.data?.message || 
-          err.response?.data?.error || 
-          err.message || 
+        const errorMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
           "Failed to load vendor profile";
         setError(errorMessage);
-        console.error("Full error details:", {
-          message: errorMessage,
-          status: err.response?.status,
-          data: err.response?.data,
-        });
       } finally {
         setLoading(false);
       }
@@ -72,13 +110,86 @@ const VendorProfilePage = () => {
     fetchReviews();
   }, [activeTab, sellerId]);
 
+  const handleEditToggle = () => {
+    if (isEditMode && vendor) {
+      // Cancel edit - reset form data
+      setEditFormData({
+        storeName: vendor.storeName || "",
+        description: vendor.description || "",
+        profilePic: vendor.profilePic || "",
+        backgroundImage: vendor.backgroundImage || "",
+      });
+      setProfilePicFile(null);
+      setProfilePicUrl("");
+      setBackgroundImageFile(null);
+      setBackgroundImageUrl("");
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      // Prepare update data
+      const updateData = {
+        storeName: editFormData.storeName,
+        description: editFormData.description,
+      };
+
+      // Use uploaded image URLs if available, otherwise use existing URLs
+      if (profilePicUrl) {
+        updateData.profilePic = profilePicUrl;
+      } else if (editFormData.profilePic) {
+        updateData.profilePic = editFormData.profilePic;
+      }
+
+      if (backgroundImageUrl) {
+        updateData.backgroundImage = backgroundImageUrl;
+      } else if (editFormData.backgroundImage) {
+        updateData.backgroundImage = editFormData.backgroundImage;
+      }
+
+      const response = await apiClient.put(
+        API_ENDPOINTS.SHOP.VENDOR.UPDATE(sellerId),
+        updateData
+      );
+
+      if (response.data.success) {
+        setVendor(response.data.vendor);
+        setEditFormData({
+          storeName: response.data.vendor.storeName || "",
+          description: response.data.vendor.description || "",
+          profilePic: response.data.vendor.profilePic || "",
+          backgroundImage: response.data.vendor.backgroundImage || "",
+        });
+        setIsEditMode(false);
+        setProfilePicFile(null);
+        setProfilePicUrl("");
+        setBackgroundImageFile(null);
+        setBackgroundImageUrl("");
+        toast({
+          title: "Success",
+          description: "Profile updated successfully!",
+        });
+      }
+    } catch (err) {
+      console.error("Error updating vendor profile:", err);
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleGetProductDetails = (productId) => {
-    // Navigate to product details page
     window.location.href = `/shop/products/${productId}`;
   };
 
   const handleAddtoCart = (productId, stock) => {
-    // Add to cart logic - you can implement this based on your cart system
     console.log("Add to cart:", productId, stock);
   };
 
@@ -109,6 +220,8 @@ const VendorProfilePage = () => {
       <div className="relative h-64 md:h-80 w-full">
         <img
           src={
+            backgroundImageUrl ||
+            editFormData.backgroundImage ||
             vendor.backgroundImage ||
             "https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1920&auto=format&fit=crop"
           }
@@ -116,6 +229,42 @@ const VendorProfilePage = () => {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/40"></div>
+        {isVendorOwner && (
+          <div className="absolute top-4 right-4">
+            {!isEditMode ? (
+              <Button
+                onClick={handleEditToggle}
+                className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
+                size="sm"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  size="sm"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+                <Button
+                  onClick={handleEditToggle}
+                  disabled={isSaving}
+                  variant="outline"
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  size="sm"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Profile Section */}
@@ -126,6 +275,8 @@ const VendorProfilePage = () => {
             <div className="relative">
               <img
                 src={
+                  profilePicUrl ||
+                  editFormData.profilePic ||
                   vendor.profilePic ||
                   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop"
                 }
@@ -136,11 +287,53 @@ const VendorProfilePage = () => {
 
             {/* Vendor Info */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                {vendor.storeName}
-              </h1>
-              <p className="text-white/80 mb-4">{vendor.description}</p>
-              <div className="flex flex-wrap gap-2 text-sm">
+              {isEditMode ? (
+                <div className="space-y-4 w-full">
+                  <div>
+                    <Label htmlFor="storeName" className="text-white">
+                      Store Name
+                    </Label>
+                    <Input
+                      id="storeName"
+                      value={editFormData.storeName}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          storeName: e.target.value,
+                        })
+                      }
+                      className="mt-2 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="Enter store name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description" className="text-white">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={editFormData.description}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          description: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="mt-2 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="Enter description"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                    {vendor.storeName}
+                  </h1>
+                  <p className="text-white/80 mb-4">{vendor.description}</p>
+                </>
+              )}
+              <div className="flex flex-wrap gap-2 text-sm mt-4">
                 <span className="bg-white/20 px-3 py-1 rounded-full">
                   {vendor.storeCategory}
                 </span>
@@ -155,6 +348,76 @@ const VendorProfilePage = () => {
               </div>
             </div>
           </div>
+
+          {/* Image Upload Sections (only in edit mode) */}
+          {isEditMode && isVendorOwner && (
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className="text-white mb-2 block">Profile Picture</Label>
+                <ProductImageUpload
+                  imageFile={profilePicFile}
+                  setImageFile={setProfilePicFile}
+                  imageLoadingState={profilePicLoading}
+                  uploadedImageUrl={profilePicUrl}
+                  setUploadedImageUrl={setProfilePicUrl}
+                  setImageLoadingState={setProfilePicLoading}
+                  isEditMode={false}
+                  isCustomStyling={true}
+                />
+                {!profilePicFile && editFormData.profilePic && (
+                  <div className="mt-2">
+                    <Label className="text-white/70 text-sm">
+                      Or enter image URL:
+                    </Label>
+                    <Input
+                      type="url"
+                      value={editFormData.profilePic}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          profilePic: e.target.value,
+                        })
+                      }
+                      className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label className="text-white mb-2 block">Background Image</Label>
+                <ProductImageUpload
+                  imageFile={backgroundImageFile}
+                  setImageFile={setBackgroundImageFile}
+                  imageLoadingState={backgroundImageLoading}
+                  uploadedImageUrl={backgroundImageUrl}
+                  setUploadedImageUrl={setBackgroundImageUrl}
+                  setImageLoadingState={setBackgroundImageLoading}
+                  isEditMode={false}
+                  isCustomStyling={true}
+                />
+                {!backgroundImageFile && editFormData.backgroundImage && (
+                  <div className="mt-2">
+                    <Label className="text-white/70 text-sm">
+                      Or enter image URL:
+                    </Label>
+                    <Input
+                      type="url"
+                      value={editFormData.backgroundImage}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          backgroundImage: e.target.value,
+                        })
+                      }
+                      className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="mt-8 flex gap-4 border-b border-white/20">
@@ -223,7 +486,11 @@ const VendorProfilePage = () => {
                                 {review.userName || "Anonymous"}
                               </h3>
                               <p className="text-sm text-white/70">
-                                {new Date(review.createdAt).toLocaleDateString()}
+                                {new Date(review.createdAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
                               </p>
                             </div>
                             <div className="flex items-center gap-1">
@@ -257,4 +524,3 @@ const VendorProfilePage = () => {
 };
 
 export default VendorProfilePage;
-
