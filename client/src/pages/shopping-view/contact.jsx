@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient, { API_ENDPOINTS } from "@/config/api";
 import {
   FaFacebook,
   FaLinkedin,
@@ -27,7 +27,7 @@ const ContactPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/contact", formData);
+      await apiClient.post(API_ENDPOINTS.SHOP.CONTACT, formData);
       setStatus("✅ Message sent successfully!");
       setFormData({ name: "", email: "", message: "" });
     } catch (err) {

@@ -20,22 +20,72 @@ const shopSellerRouter = require("./routes/shop/seller-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
 
-//create a database connection -> u can also
-//create a separate file for this and then import/use that file here
-
-// TODO: Replace this connection string with your MongoDB Atlas connection string
+// MongoDB connection configuration
+// Connection string should be provided via MONGODB_URI environment variable
 // Format: mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority
 // Get it from MongoDB Atlas: Database > Connect > Connect your application
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://nadimhassan99921_db_user:kE1ewe4AGuMcO7nn@cluster0.zey0gnm.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority";
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch((error) => {
-    console.log("❌ MongoDB connection error:", error.message);
-    console.log("Please check your connection string in server.js or .env file");
-  });
+// MongoDB connection options
+const mongooseOptions = {
+  // Use the new URL parser
+  useNewUrlParser: true,
+  // Use the new server discovery and monitoring engine
+  useUnifiedTopology: true,
+  // Connection pool settings
+  maxPoolSize: 10, // Maintain up to 10 socket connections
+  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  // Retry settings
+  retryWrites: true,
+  w: 'majority'
+};
+
+// Connect to MongoDB
+const connectDB = async () => {
+  try {
+    if (!MONGODB_URI) {
+      throw new Error("MONGODB_URI is not defined. Please set it in your .env file.");
+    }
+
+    const conn = await mongoose.connect(MONGODB_URI, mongooseOptions);
+    
+    console.log("✅ MongoDB connected successfully");
+    console.log(`   Host: ${conn.connection.host}`);
+    console.log(`   Database: ${conn.connection.name}`);
+    
+    // Handle connection events
+    mongoose.connection.on('error', (err) => {
+      console.error("❌ MongoDB connection error:", err.message);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.warn("⚠️  MongoDB disconnected. Attempting to reconnect...");
+    });
+
+    mongoose.connection.on('reconnected', () => {
+      console.log("✅ MongoDB reconnected successfully");
+    });
+
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      await mongoose.connection.close();
+      console.log("MongoDB connection closed through app termination");
+      process.exit(0);
+    });
+
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error.message);
+    console.error("Please check your connection string in .env file or server.js");
+    console.error("Error details:", error);
+    // Exit process with failure
+    process.exit(1);
+  }
+};
+
+// Initialize database connection
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

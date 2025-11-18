@@ -1,5 +1,5 @@
-import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import apiClient, { API_ENDPOINTS } from "@/config/api";
 
 const initialState = {
   cartItems: [],
@@ -9,8 +9,8 @@ const initialState = {
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/cart/add",
+    const response = await apiClient.post(
+      API_ENDPOINTS.SHOP.CART.ADD,
       {
         userId,
         productId,
@@ -25,8 +25,8 @@ export const addToCart = createAsyncThunk(
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/cart/get/${userId}`
+    const response = await apiClient.get(
+      API_ENDPOINTS.SHOP.CART.GET(userId)
     );
 
     return response.data;
@@ -36,8 +36,8 @@ export const fetchCartItems = createAsyncThunk(
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
   async ({ userId, productId }) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/cart/${userId}/${productId}`
+    const response = await apiClient.delete(
+      API_ENDPOINTS.SHOP.CART.DELETE(userId, productId)
     );
 
     return response.data;
@@ -47,8 +47,8 @@ export const deleteCartItem = createAsyncThunk(
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
   async ({ userId, productId, quantity }) => {
-    const response = await axios.put(
-      "http://localhost:5000/api/shop/cart/update-cart",
+    const response = await apiClient.put(
+      API_ENDPOINTS.SHOP.CART.UPDATE,
       {
         userId,
         productId,

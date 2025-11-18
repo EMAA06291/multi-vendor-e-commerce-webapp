@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useSelector } from "react-redux";
 
@@ -36,11 +36,9 @@ const BecomeSellerForm = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/seller", {
+      const res = await apiClient.post(API_ENDPOINTS.SHOP.SELLER, {
         ...formData,
         userId: user.id,
-      }, {
-        withCredentials: true
       });
       toast({
         title: res.data.message || "Seller application submitted successfully!",
