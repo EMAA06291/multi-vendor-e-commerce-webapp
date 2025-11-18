@@ -34,3 +34,4 @@ router.delete("/delete/:sellerId", deleteVendor);
 
 module.exports = router;
 
+

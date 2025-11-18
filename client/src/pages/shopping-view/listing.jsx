@@ -1,6 +1,6 @@
 import ProductFilter from "@/components/shopping-view/filter";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
-import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import ShopProductCard from "@/components/shopping-view/shop-product-card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +19,8 @@ import {
 import { ArrowUpDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import "@/styles/shop-listing.css";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -39,6 +40,7 @@ function createSearchParamsHelper(filterParams) {
 
 function ShoppingListing() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
@@ -48,6 +50,8 @@ function ShoppingListing() {
   const [sort, setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 12;
   const { toast } = useToast();
 
   const categorySearchParam = searchParams.get("category");
@@ -84,7 +88,26 @@ function ShoppingListing() {
   }
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
+    // Check if user is logged in
+    if (!user?.id) {
+      toast({
+        title: "Please login to add items to cart",
+        variant: "destructive",
+      });
+      navigate("/auth/login");
+      return;
+    }
+
+    // Check if product is out of stock
+    if (getTotalStock === 0) {
+      toast({
+        title: "Product is out of stock",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check current cart items
     let getCartItems = cartItems.items || [];
 
     if (getCartItems.length) {
@@ -95,26 +118,32 @@ function ShoppingListing() {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
         if (getQuantity + 1 > getTotalStock) {
           toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
+            title: `Only ${getTotalStock} quantity available for this item`,
             variant: "destructive",
           });
-
           return;
         }
       }
     }
 
+    // Add to cart
     dispatch(
       addToCart({
-        userId: user?.id,
+        userId: user.id,
         productId: getCurrentProductId,
         quantity: 1,
       })
     ).then((data) => {
       if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
+        dispatch(fetchCartItems(user.id));
         toast({
           title: "Product is added to cart",
+        });
+      } else {
+        toast({
+          title: "Error adding to cart",
+          description: data?.payload?.message || "Failed to add product to cart",
+          variant: "destructive",
         });
       }
     });
@@ -133,10 +162,12 @@ function ShoppingListing() {
   }, [filters]);
 
   useEffect(() => {
-    if (filters !== null && sort !== null)
+    if (filters !== null && sort !== null) {
       dispatch(
         fetchAllFilteredProducts({ filterParams: filters, sortParams: sort })
       );
+      setCurrentPage(1); // Reset to first page when filters/sort change
+    }
   }, [dispatch, sort, filters]);
 
   useEffect(() => {
@@ -181,16 +212,67 @@ function ShoppingListing() {
             </DropdownMenu>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          {productList && productList.length > 0
-            ? productList.map((productItem) => (
-                <ShoppingProductTile
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                  handleAddtoCart={handleAddtoCart}
-                />
-              ))
-            : null}
+        <div className="shop-products-grid">
+          {productList && productList.length > 0 ? (
+            <>
+              {(() => {
+                const totalPages = Math.ceil(productList.length / PRODUCTS_PER_PAGE);
+                const safePage = Math.min(Math.max(1, currentPage), totalPages);
+                const start = (safePage - 1) * PRODUCTS_PER_PAGE;
+                const currentProducts = productList.slice(start, start + PRODUCTS_PER_PAGE);
+                
+                return (
+                  <>
+                    {currentProducts.map((productItem) => (
+                      <ShopProductCard
+                        key={productItem._id}
+                        product={productItem}
+                        onAdd={handleAddtoCart}
+                        onViewDetails={handleGetProductDetails}
+                      />
+                    ))}
+                    
+                    {totalPages > 1 && (
+                      <div className="shop-pagination" style={{ gridColumn: "1 / -1" }}>
+                        <button
+                          className="shop-nav-btn"
+                          onClick={() => setCurrentPage((s) => Math.max(1, s - 1))}
+                          disabled={safePage === 1}
+                          aria-label="Previous page"
+                        >
+                          ‹ Prev
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <button
+                            key={i + 1}
+                            className={`shop-page-btn ${safePage === i + 1 ? "active" : ""}`}
+                            onClick={() => setCurrentPage(i + 1)}
+                            aria-current={safePage === i + 1 ? "page" : undefined}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+
+                        <button
+                          className="shop-nav-btn"
+                          onClick={() => setCurrentPage((s) => Math.min(totalPages, s + 1))}
+                          disabled={safePage === totalPages}
+                          aria-label="Next page"
+                        >
+                          Next ›
+                        </button>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </>
+          ) : (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px" }}>
+              <p className="text-muted-foreground">No products found.</p>
+            </div>
+          )}
         </div>
       </div>
       <ProductDetailsDialog
