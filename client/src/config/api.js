@@ -2,7 +2,9 @@
 // This file centralizes all API endpoints and base URL configuration
 
 // Get API base URL from environment variable or use default
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000" || "https://multi-vendor-e-commerce-webapp-1.onrender.com";
+// In development, use localhost; in production, use Render URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (import.meta.env.DEV ? "http://localhost:5000" : "https://multi-vendor-e-commerce-webapp-1.onrender.com");
 
 // Create axios instance with default configuration
 import axios from "axios";
