@@ -13,6 +13,10 @@ function CheckAuth({ isAuthenticated, user, children }) {
   const disableAuth = true; // ✅ عطّل التحقق مؤقتًا أثناء الاختبار
   if (disableAuth) return <>{children}</>;
 
+  // 🧩 أضف السطرين دول في الأول:
+  const disableAuth = true; // ✅ عطّل التحقق مؤقتًا أثناء الاختبار
+  if (disableAuth) return <>{children}</>;
+
   console.log(location.pathname, isAuthenticated);
 
   if (location.pathname === "/") {
