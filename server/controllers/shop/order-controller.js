@@ -20,14 +20,53 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
+    // Handle Cash on Delivery (COD) orders
+    if (paymentMethod === "cod") {
+      const newlyCreatedOrder = new Order({
+        userId,
+        cartId,
+        cartItems,
+        addressInfo,
+        orderStatus: "pending",
+        paymentMethod: "cod",
+        paymentStatus: "pending",
+        totalAmount,
+        orderDate,
+        orderUpdateDate,
+      });
+
+      await newlyCreatedOrder.save();
+
+      // Update product stock for COD orders
+      for (let item of cartItems) {
+        let product = await Product.findById(item.productId);
+        if (product) {
+          product.totalStock -= item.quantity;
+          await product.save();
+        }
+      }
+
+      // Clear the cart
+      if (cartId) {
+        await Cart.findByIdAndDelete(cartId);
+      }
+
+      return res.status(201).json({
+        success: true,
+        orderId: newlyCreatedOrder._id,
+        message: "Order created successfully",
+      });
+    }
+
+    // Handle PayPal payments
     const create_payment_json = {
       intent: "sale",
       payer: {
         payment_method: "paypal",
       },
       redirect_urls: {
-        return_url: "http://localhost:5173/shop/paypal-return",
-        cancel_url: "http://localhost:5173/shop/paypal-cancel",
+        return_url: process.env.PAYPAL_RETURN_URL || "http://localhost:5173/shop/paypal-return",
+        cancel_url: process.env.PAYPAL_CANCEL_URL || "http://localhost:5173/shop/paypal-cancel",
       },
       transactions: [
         {

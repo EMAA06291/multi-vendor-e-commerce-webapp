@@ -63,7 +63,7 @@ const LoginForm = () => {
         name="email"
         placeholder="Enter your email"
         autoComplete="off"
-        className="w-full p-3.5 border border-gray-300 rounded-md focus:border-[#3785D8] outline-none transition-colors"
+        className="w-full p-3.5 border border-gray-300 rounded-md focus:border-[#3785D8] outline-none transition-colors text-gray-900"
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
         value={formik.values.email}
@@ -80,7 +80,7 @@ const LoginForm = () => {
         name="password"
         placeholder="Enter your password"
         autoComplete="new-password"
-        className="w-full p-3.5 border border-gray-300 rounded-md focus:border-[#3785D8] outline-none transition-colors"
+        className="w-full p-3.5 border border-gray-300 rounded-md focus:border-[#3785D8] outline-none transition-colors text-gray-900"
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
         value={formik.values.password}

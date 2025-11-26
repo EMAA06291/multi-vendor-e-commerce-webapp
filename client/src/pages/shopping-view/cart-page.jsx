@@ -144,11 +144,11 @@ const CartPage = () => {
             <button>Apply Coupon</button>
           </div>
           <button
-            onClick={() => navigate("/shop/checkout")}
+            onClick={() => navigate("/shop/payment")}
             className="w-full mt-4 py-3 rounded-lg font-semibold text-white hover:opacity-90 transition-all"
             style={{ background: "linear-gradient(135deg, #3b5bdb, #1b3b6f)" }}
           >
-            Proceed to Checkout
+            Proceed to Payment
           </button>
         </div>
       </div>
