@@ -25,6 +25,7 @@ import WriteArticlePage from "./pages/admin-view/write-article";
 import VendorProfilePage from "./pages/shopping-view/vendor-profile";
 import ContactPage from "./pages/shopping-view/contact";
 import CartPage from "./pages/shopping-view/cart-page";
+import PaymentPage from "./pages/shopping-view/payment";
 import Wishlist from "./components/wishlist/Wishlist";
 import VendorLayout from "./components/vendor-view/layout";
 import VendorDashboard from "./pages/vendor-view/dashboard";
@@ -120,6 +121,7 @@ function App() {
           <Route path="home" element={<ShoppingHome />} />
           <Route path="listing" element={<ShoppingListing />} />
           <Route path="checkout" element={<CartPage />} />
+          <Route path="payment" element={<PaymentPage />} />
           <Route path="account" element={<ShoppingAccount />} />
           <Route path="paypal-return" element={<PaypalReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
