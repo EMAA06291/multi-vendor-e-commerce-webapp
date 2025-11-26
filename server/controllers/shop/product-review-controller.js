@@ -81,4 +81,49 @@ const getProductReviews = async (req, res) => {
   }
 };
 
-module.exports = { addProductReview, getProductReviews };
+const getRecentReviews = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 9;
+
+    const reviews = await ProductReview.find({})
+      .sort({ reviewValue: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    const productIds = [
+      ...new Set(reviews.map((review) => review.productId).filter(Boolean)),
+    ];
+
+    const products = await Product.find({ _id: { $in: productIds } })
+      .select("title image storeName")
+      .lean();
+
+    const productMap = products.reduce((acc, product) => {
+      acc[product._id.toString()] = product;
+      return acc;
+    }, {});
+
+    const formattedReviews = reviews.map((review) => {
+      const productInfo = productMap[review.productId] || {};
+      return {
+        ...review,
+        productTitle: productInfo.title || "Marketplace Vendor",
+        productImage: productInfo.image || null,
+        vendorName: productInfo.storeName || "Community Seller",
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: formattedReviews,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "Error",
+    });
+  }
+};
+
+module.exports = { addProductReview, getProductReviews, getRecentReviews };

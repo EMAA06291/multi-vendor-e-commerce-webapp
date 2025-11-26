@@ -78,34 +78,6 @@ const categoriesWithIcon = [
   },
 ];
 
-// Static testimonials (can be made dynamic later)
-const testimonials = [
-  {
-    id: 1,
-    name: "Emily Johnson",
-    location: "Downtown",
-    rating: 5,
-    text: "Sarah's tailoring is absolutely amazing! She made my wedding dress and it was perfect.",
-    vendor: "Sarah's Custom Tailoring",
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    location: "Residential Area",
-    rating: 5,
-    text: "Mama's Kitchen has become our go-to for family dinners. The food tastes just like home.",
-    vendor: "Mama's Kitchen",
-  },
-  {
-    id: 3,
-    name: "Sarah Williams",
-    location: "Arts Quarter",
-    rating: 5,
-    text: "I love the unique pottery pieces from Artisan Crafts. Each piece tells a story.",
-    vendor: "Artisan Crafts",
-  },
-];
-
 const platformFeatures = [
   {
     icon: Sparkles,
@@ -142,11 +114,13 @@ function ShoppingHome() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [blogPosts, setBlogPosts] = useState([]);
   const [popularProducts, setPopularProducts] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [loadingVendors, setLoadingVendors] = useState(true);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingBlog, setLoadingBlog] = useState(true);
   const [loadingPopular, setLoadingPopular] = useState(true);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -260,6 +234,30 @@ function ShoppingHome() {
       }
     };
     fetchPopular();
+  }, []);
+
+  // Fetch recent testimonials/reviews
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        setLoadingTestimonials(true);
+        const response = await apiClient.get(
+          API_ENDPOINTS.SHOP.REVIEW.RECENT,
+          {
+            params: { limit: 9 },
+          }
+        );
+        if (response.data.success) {
+          setTestimonials(response.data.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching testimonials:", error);
+      } finally {
+        setLoadingTestimonials(false);
+      }
+    };
+
+    fetchTestimonials();
   }, []);
 
   function handleNavigateToListingPage(getCurrentItem, section) {
@@ -1038,65 +1036,86 @@ function ShoppingHome() {
             </p>
           </div>
 
-          <Swiper
-            modules={[SwiperNavigation, Pagination, Autoplay]}
-            navigation={true}
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 6000, disableOnInteraction: false }}
-            spaceBetween={30}
-            slidesPerView={1}
-            loop={true}
-            speed={700}
-            grabCursor={true}
-            breakpoints={{
-              640: {
-                slidesPerView: 2,
-              },
-              1024: {
-                slidesPerView: 3,
-              },
-            }}
-            className="pb-12"
-          >
-            {testimonials.map((testimonial) => (
-              <SwiperSlide key={testimonial.id}>
-                <Card className="border-0 bg-card-bg dark:bg-slate-800 shadow-custom-1 h-full">
-                  <CardContent className="p-6 flex flex-col h-full">
-                    <div className="flex items-center mb-4">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mr-4 text-white font-bold text-lg">
-                        {testimonial.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-text-900 dark:text-slate-100">
-                          {testimonial.name}
-                        </h4>
-                        <p className="text-sm text-muted dark:text-slate-300">
-                          {testimonial.location}
+          {loadingTestimonials ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">
+                Loading community stories...
+              </p>
+            </div>
+          ) : testimonials.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted dark:text-slate-300">
+                No testimonials available yet.
+              </p>
+            </div>
+          ) : (
+            <Swiper
+              modules={[SwiperNavigation, Pagination, Autoplay]}
+              navigation={true}
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 6000, disableOnInteraction: false }}
+              spaceBetween={30}
+              slidesPerView={1}
+              loop={testimonials.length > 3}
+              speed={700}
+              grabCursor={true}
+              breakpoints={{
+                640: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 3,
+                },
+              }}
+              className="pb-12"
+            >
+              {testimonials.map((testimonial) => {
+                const rating = testimonial.reviewValue || 0;
+                return (
+                  <SwiperSlide key={testimonial._id}>
+                    <Card className="border-0 bg-card-bg dark:bg-slate-800 shadow-custom-1 h-full">
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="flex items-center mb-4">
+                          <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mr-4 text-white font-bold text-lg">
+                            {(testimonial.userName || "U").charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-text-900 dark:text-slate-100">
+                              {testimonial.userName || "Marketplace Shopper"}
+                            </h4>
+                            <p className="text-sm text-muted dark:text-slate-300">
+                              {testimonial.productTitle || "Community Purchase"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center mb-3">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < Math.round(rating)
+                                  ? "text-yellow-400 fill-yellow-400"
+                                  : "text-yellow-400/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        <p className="text-muted dark:text-slate-300 mb-4 italic flex-grow">
+                          "{testimonial.reviewMessage}"
                         </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center mb-3">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-4 h-4 text-yellow-400 fill-current"
-                        />
-                      ))}
-                    </div>
-
-                    <p className="text-muted dark:text-slate-300 mb-4 italic flex-grow">
-                      "{testimonial.text}"
-                    </p>
-
-                    <div className="text-sm text-primary-500 font-medium mt-auto dark:text-primary-300">
-                      - {testimonial.vendor}
-                    </div>
-                  </CardContent>
-                </Card>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                        <div className="text-sm text-primary-500 font-medium mt-auto dark:text-primary-300">
+                          - {testimonial.vendorName || testimonial.productTitle}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </SwiperSlide>
+                );
+              })}
+            </Swiper>
+          )}
         </div>
       </section>
 

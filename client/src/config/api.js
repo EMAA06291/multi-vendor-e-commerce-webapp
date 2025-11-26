@@ -120,6 +120,7 @@ export const API_ENDPOINTS = {
     REVIEW: {
       ADD: "/api/shop/review/add",
       GET: (id) => `/api/shop/review/${id}`,
+      RECENT: "/api/shop/review/recent",
     },
     SELLER: "/api/seller",
     CONTACT: "/api/contact",
