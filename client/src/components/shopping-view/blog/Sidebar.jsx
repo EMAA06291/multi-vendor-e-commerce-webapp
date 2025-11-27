@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient, { API_ENDPOINTS } from '@/config/api';
 
-const Sidebar = ({ search, setSearch }) => {
+const Sidebar = ({ searchInput, setSearchInput, onSearch }) => {
   const [activeCategory, setActiveCategory] = useState('Gaming');
   const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,18 +60,37 @@ const Sidebar = ({ search, setSearch }) => {
   return (
     <aside className="blog-sidebar">
       <div>
-        <div className="search-container">
+        <form 
+          className="search-container"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSearch();
+          }}
+        >
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Searching..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onSearch();
+              }
+            }}
+            placeholder="Search articles..."
             className="search-input"
           />
-          <button className="search-button">
+          <button 
+            type="submit" 
+            className="search-button"
+            onClick={(e) => {
+              e.preventDefault();
+              onSearch();
+            }}
+          >
             <i className="fa-solid fa-search"></i>
           </button>
-        </div>
+        </form>
       </div>
 
       <div className="sidebar-widget recent-posts-widget">

@@ -6,13 +6,18 @@ import Features from '@/components/shopping-view/blog/Features';
 import '@/styles/blog.css';
 
 const BlogPage = () => {
-  const [search, setSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Actual search query used for filtering
+  const [searchInput, setSearchInput] = useState(''); // Input value in the search bar
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-[#ADC6E5]">
+    <div className="min-h-screen bg-[#EAF2FB] dark:bg-slate-900 text-gray-900 dark:text-white">
       <main className="blog-container-spec py-10">
-        <BlogPosts />
-        <Sidebar search={search} setSearch={setSearch} />
+        <BlogPosts search={searchQuery} />
+        <Sidebar searchInput={searchInput} setSearchInput={setSearchInput} onSearch={handleSearch} />
       </main>
 
       <Pagination />
