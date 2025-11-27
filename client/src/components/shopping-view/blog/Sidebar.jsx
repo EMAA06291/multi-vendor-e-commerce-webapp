@@ -36,7 +36,12 @@ const Sidebar = ({ searchInput, setSearchInput, onSearch, selectedCategory, setS
   useEffect(() => {
     const fetchCategoriesAndTags = async () => {
       try {
-        const response = await apiClient.get(API_ENDPOINTS.SHOP.BLOG.GET);
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.BLOG.GET, {
+          params: {
+            limit: 1000, // High limit to get all posts
+            published: true
+          }
+        });
         
         if (response.data.success) {
           const articles = response.data.articles || [];

@@ -33,7 +33,7 @@ const articleSchema = new mongoose.Schema(
     },
     published: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     views: {
       type: Number,

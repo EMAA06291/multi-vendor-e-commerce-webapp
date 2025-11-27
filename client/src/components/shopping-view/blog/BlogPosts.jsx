@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient, { API_ENDPOINTS } from '@/config/api';
 
-const BlogPosts = ({ search = '', selectedCategory = 'All' }) => {
+const BlogPosts = ({ search = '', selectedCategory = 'All', currentPage = 1, onTotalPostsChange, postsPerPage = 6 }) => {
   const [blogPosts, setBlogPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const [paginatedPosts, setPaginatedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,7 +13,13 @@ const BlogPosts = ({ search = '', selectedCategory = 'All' }) => {
     const fetchArticles = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get(API_ENDPOINTS.SHOP.BLOG.GET);
+        // Fetch all articles by passing a very high limit
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.BLOG.GET, {
+          params: {
+            limit: 1000, // High limit to get all posts
+            published: true
+          }
+        });
         
         if (response.data.success) {
           const articles = response.data.articles || [];
@@ -102,23 +109,35 @@ const BlogPosts = ({ search = '', selectedCategory = 'All' }) => {
     }
 
     // Then apply search filter if search query exists
-    if (!search.trim()) {
-      setFilteredPosts(categoryFiltered);
-    } else {
+    let filtered = categoryFiltered;
+    if (search.trim()) {
       const postsWithScores = categoryFiltered.map(post => ({
         post,
         score: calculateRelevanceScore(post, search)
       }));
 
       // Filter out posts with score 0 and sort by relevance (highest first)
-      const filtered = postsWithScores
+      filtered = postsWithScores
         .filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score)
         .map(item => item.post);
-
-      setFilteredPosts(filtered);
     }
-  }, [search, selectedCategory, blogPosts]);
+
+    setFilteredPosts(filtered);
+    
+    // Notify parent of total posts count
+    if (onTotalPostsChange) {
+      onTotalPostsChange(filtered.length);
+    }
+  }, [search, selectedCategory, blogPosts, onTotalPostsChange]);
+
+  // Paginate filtered posts
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * postsPerPage;
+    const endIndex = startIndex + postsPerPage;
+    const paginated = filteredPosts.slice(startIndex, endIndex);
+    setPaginatedPosts(paginated);
+  }, [filteredPosts, currentPage, postsPerPage]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -205,7 +224,7 @@ const BlogPosts = ({ search = '', selectedCategory = 'All' }) => {
       </div>
 
       <div className="space-y-10">
-        {filteredPosts.map((post) => (
+        {paginatedPosts.map((post) => (
           <Link 
             key={post._id} 
             to={`/shop/article/${post._id}`}
