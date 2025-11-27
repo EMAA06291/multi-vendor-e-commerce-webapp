@@ -234,16 +234,6 @@ const Sidebar = ({ searchInput, setSearchInput, onSearch, selectedCategory, setS
         </div>
       </div>
 
-      <div className="sidebar-widget cta-widget">
-        <div className="cta-banner">
-          <h4 className="cta-title">Premium Content</h4>
-          <p className="cta-text">Access exclusive articles and tutorials</p>
-          <button className="cta-button">
-            Subscribe Now
-          </button>
-        </div>
-      </div>
-
       <div className="sidebar-widget tags-widget">
         <h3 className="widget-title">Popular Tags</h3>
         <div className="tags-container">
