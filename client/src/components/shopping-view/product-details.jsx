@@ -193,7 +193,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               )}
             </div>
 
-            <div className="space-y-4 max-h-[320px] overflow-y-auto pr-2 custom-scroll">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Community Reviews</h2>
                 <Badge variant="outline" className="text-xs">
