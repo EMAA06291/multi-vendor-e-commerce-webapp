@@ -1211,47 +1211,6 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-gradient-hero text-white" data-aos="fade-up">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-4">Stay Updated</h2>
-            <p className="text-xl mb-8 text-white/90">
-              Get the latest updates on new vendors, special offers, and
-              community stories
-            </p>
-
-            <div className="max-w-md mx-auto">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  toast({
-                    title: "Thanks — you've been subscribed (demo)",
-                  });
-                }}
-              >
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Input
-                    type="email"
-                    required
-                    placeholder="Enter your email"
-                    className="flex-1 bg-white/12 border-white/20 text-white placeholder:text-white/70 focus:bg-white/20"
-                  />
-                  <Button
-                    type="submit"
-                    className={`bg-white text-primary-500 hover:bg-white/90 px-8 ${btnTextClass}`}
-                  >
-                    Subscribe
-                  </Button>
-                </div>
-              </form>
-
-              <p className="text-sm text-white/70 mt-4">
-                Join 5,000+ subscribers. Unsubscribe anytime.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <ProductDetailsDialog
         open={openDetailsDialog}
