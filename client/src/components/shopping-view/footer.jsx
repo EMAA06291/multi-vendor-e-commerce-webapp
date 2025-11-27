@@ -68,7 +68,7 @@ const contactInfo = {
 
 function ShoppingFooter() {
   return (
-    <footer className="bg-gradient-to-b from-blue-100 via-purple-100 to-white dark:from-slate-900 dark:via-slate-800 dark:to-black text-gray-800 dark:text-white transition-all duration-500 mt-10">
+    <footer className="bg-gradient-to-b from-blue-100 via-purple-100 to-white dark:from-slate-900 dark:via-slate-800 dark:to-black text-gray-800 dark:text-white transition-all duration-500 ">
       <div className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2">
