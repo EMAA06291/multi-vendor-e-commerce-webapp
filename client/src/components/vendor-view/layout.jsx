@@ -11,7 +11,9 @@ function VendorLayout() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* Main navbar */}
-      <ShoppingHeader />
+      <div className="sticky top-0 z-50">
+        <ShoppingHeader />
+      </div>
       
       <div className="flex flex-1">
         {/* vendor sidebar */}

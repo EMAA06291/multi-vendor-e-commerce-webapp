@@ -159,7 +159,7 @@ function ShoppingHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b backdrop-blur-sm shadow-custom-1 bg-white/95 text-gray-900 dark:bg-[#0f0f0f]/95 dark:text-white dark:border-gray-800">
+    <header className="sticky top-0 z-50 w-full border-b backdrop-blur-sm shadow-sm bg-white/95 text-gray-900 dark:bg-[#0f0f0f]/95 dark:text-white dark:border-gray-800">
       <div className="flex h-16 items-center justify-between px-4 md:px-6 gap-4">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg">

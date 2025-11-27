@@ -73,9 +73,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="max-w-[95vw] lg:max-w-6xl border-0 bg-transparent p-0">
-        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/60 text-white">
+      <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] border-0 bg-transparent p-0 overflow-hidden flex flex-col">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl max-h-[90vh] flex-1 min-h-0">
+          <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/60 text-white min-h-[300px] lg:max-h-[90vh] overflow-hidden">
             <img
               src={
                 productDetails?.image ||
@@ -121,7 +121,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             </div>
           </div>
 
-          <div className="p-6 lg:p-8 space-y-6">
+          <div className="p-6 lg:p-8 space-y-6 overflow-y-auto lg:max-h-[90vh]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 text-yellow-500">
