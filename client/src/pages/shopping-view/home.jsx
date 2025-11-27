@@ -519,13 +519,13 @@ function ShoppingHome() {
         </motion.div>
       </div>
 
-      <section className="py-12 bg-white dark:bg-slate-900" data-aos="fade-up">
+      <section className="py-12 bg-[#EAF2FB] dark:bg-slate-900" data-aos="fade-up">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Shop by Category
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-900 dark:text-slate-100 max-w-2xl mx-auto">
               Find exactly what you're looking for from our diverse range of
               local businesses
             </p>
@@ -561,7 +561,7 @@ function ShoppingHome() {
                     <h3 className="font-semibold text-text-900 dark:text-slate-100 mb-2">
                       {category.label}
                     </h3>
-                    <p className="text-sm text-muted dark:text-slate-300">
+                    <p className="text-sm text-gray-700 dark:text-slate-200">
                       Explore local options
                     </p>
                   </CardContent>
@@ -578,7 +578,7 @@ function ShoppingHome() {
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Special Offers
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Don't miss out on these amazing deals
             </p>
           </div>
@@ -659,13 +659,13 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-white dark:bg-slate-900" data-aos="fade-up">
+      <section className="py-12 bg-[#EAF2FB] dark:bg-slate-900" data-aos="fade-up">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Featured Local Vendors
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Discover top-rated local businesses near you
             </p>
           </div>
@@ -760,13 +760,13 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-white dark:bg-slate-900" data-aos="fade-up">
+      <section className="py-12 bg-[#EAF2FB] dark:bg-slate-900" data-aos="fade-up">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Featured Products
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Curated items from our artisan community
             </p>
           </div>
@@ -855,13 +855,13 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-gray-50 dark:bg-slate-900" data-aos="fade-up">
+      <section className="py-12 bg-[#EAF2FB] dark:bg-slate-900" data-aos="fade-up">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Marketplace Highlights
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Simple steps to connect with local artisans
             </p>
           </div>
@@ -871,7 +871,7 @@ function ShoppingHome() {
               (title, idx) => (
                 <div
                   key={title}
-                  className="text-center"
+                  className="text-center bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md"
                   data-aos="zoom-in"
                   data-aos-delay={idx * 80}
                 >
@@ -881,7 +881,7 @@ function ShoppingHome() {
                   <h3 className="font-bold text-xl text-text-900 dark:text-slate-100 mb-3">
                     {title}
                   </h3>
-                  <p className="text-muted dark:text-slate-300">
+                  <p className="text-gray-700 dark:text-slate-200">
                     {idx === 0 &&
                       "Explore local vendors in your area and find unique services."}
                     {idx === 1 &&
@@ -902,7 +902,7 @@ function ShoppingHome() {
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Why Choose Our Platform?
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Empowering local businesses and connecting communities
             </p>
           </div>
@@ -911,7 +911,7 @@ function ShoppingHome() {
             {platformFeatures.map((feature, index) => (
               <div
                 key={feature.title}
-                className="text-center"
+                className="text-center bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md"
                 data-aos="fade-up"
                 data-aos-delay={index * 60}
               >
@@ -921,7 +921,7 @@ function ShoppingHome() {
                 <h3 className="font-bold text-lg text-text-900 dark:text-slate-100 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-muted dark:text-slate-300">
+                <p className="text-gray-700 dark:text-slate-200">
                   {feature.description}
                 </p>
               </div>
@@ -930,13 +930,13 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-white dark:bg-slate-900" data-aos="fade-up">
+      <section className="py-12 bg-[#EAF2FB] dark:bg-slate-900" data-aos="fade-up">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Popular Marketplace Picks
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Browse fresh listings from verified sellers
             </p>
           </div>
@@ -1025,13 +1025,13 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-white dark:bg-slate-900" data-aos="fade-up">
+      <section className="py-12 bg-[#EAF2FB] dark:bg-slate-900" data-aos="fade-up">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               What Our Customers Say
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Real stories from our community
             </p>
           </div>
@@ -1049,72 +1049,72 @@ function ShoppingHome() {
               </p>
             </div>
           ) : (
-            <Swiper
-              modules={[SwiperNavigation, Pagination, Autoplay]}
-              navigation={true}
-              pagination={{ clickable: true }}
-              autoplay={{ delay: 6000, disableOnInteraction: false }}
-              spaceBetween={30}
-              slidesPerView={1}
+          <Swiper
+            modules={[SwiperNavigation, Pagination, Autoplay]}
+            navigation={true}
+            pagination={{ clickable: true }}
+            autoplay={{ delay: 6000, disableOnInteraction: false }}
+            spaceBetween={30}
+            slidesPerView={1}
               loop={testimonials.length > 3}
-              speed={700}
-              grabCursor={true}
-              breakpoints={{
-                640: {
-                  slidesPerView: 2,
-                },
-                1024: {
-                  slidesPerView: 3,
-                },
-              }}
-              className="pb-12"
-            >
+            speed={700}
+            grabCursor={true}
+            breakpoints={{
+              640: {
+                slidesPerView: 2,
+              },
+              1024: {
+                slidesPerView: 3,
+              },
+            }}
+            className="pb-12"
+          >
               {testimonials.map((testimonial) => {
                 const rating = testimonial.reviewValue || 0;
                 return (
                   <SwiperSlide key={testimonial._id}>
-                    <Card className="border-0 bg-card-bg dark:bg-slate-800 shadow-custom-1 h-full">
-                      <CardContent className="p-6 flex flex-col h-full">
-                        <div className="flex items-center mb-4">
-                          <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mr-4 text-white font-bold text-lg">
+                <Card className="border-0 bg-card-bg dark:bg-slate-800 shadow-custom-1 h-full">
+                  <CardContent className="p-6 flex flex-col h-full">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mr-4 text-white font-bold text-lg">
                             {(testimonial.userName || "U").charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-text-900 dark:text-slate-100">
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-text-900 dark:text-slate-100">
                               {testimonial.userName || "Marketplace Shopper"}
-                            </h4>
-                            <p className="text-sm text-muted dark:text-slate-300">
+                        </h4>
+                        <p className="text-sm text-gray-700 dark:text-slate-200">
                               {testimonial.productTitle || "Community Purchase"}
-                            </p>
-                          </div>
-                        </div>
+                        </p>
+                      </div>
+                    </div>
 
-                        <div className="flex items-center mb-3">
+                    <div className="flex items-center mb-3">
                           {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
+                        <Star
+                          key={i}
                               className={`w-4 h-4 ${
                                 i < Math.round(rating)
                                   ? "text-yellow-400 fill-yellow-400"
                                   : "text-yellow-400/30"
                               }`}
-                            />
-                          ))}
-                        </div>
+                        />
+                      ))}
+                    </div>
 
-                        <p className="text-muted dark:text-slate-300 mb-4 italic flex-grow">
+                    <p className="text-gray-700 dark:text-slate-200 mb-4 italic flex-grow">
                           "{testimonial.reviewMessage}"
-                        </p>
+                    </p>
 
-                        <div className="text-sm text-primary-500 font-medium mt-auto dark:text-primary-300">
+                    <div className="text-sm text-primary-500 font-medium mt-auto dark:text-primary-300">
                           - {testimonial.vendorName || testimonial.productTitle}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </SwiperSlide>
+                    </div>
+                  </CardContent>
+                </Card>
+              </SwiperSlide>
                 );
               })}
-            </Swiper>
+          </Swiper>
           )}
         </div>
       </section>
@@ -1125,7 +1125,7 @@ function ShoppingHome() {
             <h2 className="text-4xl font-bold text-text-900 dark:text-slate-100 mb-4">
               Latest from Our Blog
             </h2>
-            <p className="text-lg text-muted dark:text-slate-300">
+            <p className="text-lg text-gray-700 dark:text-slate-200">
               Tips, stories, and insights from our community
             </p>
           </div>
