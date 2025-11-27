@@ -330,6 +330,12 @@
   border-radius: 6px;
 }
 
+.category-row.active {
+  background: rgba(55, 133, 216, 0.08);
+  border-radius: 6px;
+  border-left: 3px solid #3785D8;
+}
+
 .category-label {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -340,6 +346,11 @@
 
 .category-row:hover .category-label {
   color: #3785D8;
+}
+
+.category-row.active .category-label {
+  color: #3785D8;
+  font-weight: 600;
 }
 
 .category-count {

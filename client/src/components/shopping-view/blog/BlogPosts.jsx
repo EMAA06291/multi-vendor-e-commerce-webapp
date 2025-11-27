@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient, { API_ENDPOINTS } from '@/config/api';
 
-const BlogPosts = ({ search = '' }) => {
+const BlogPosts = ({ search = '', selectedCategory = 'All' }) => {
   const [blogPosts, setBlogPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,12 +91,21 @@ const BlogPosts = ({ search = '' }) => {
     return score;
   };
 
-  // Filter and sort posts based on search query with relevance scoring
+  // Filter and sort posts based on search query and category with relevance scoring
   useEffect(() => {
+    // First filter by category
+    let categoryFiltered = blogPosts;
+    if (selectedCategory && selectedCategory !== 'All') {
+      categoryFiltered = blogPosts.filter(post => 
+        post.category && post.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    }
+
+    // Then apply search filter if search query exists
     if (!search.trim()) {
-      setFilteredPosts(blogPosts);
+      setFilteredPosts(categoryFiltered);
     } else {
-      const postsWithScores = blogPosts.map(post => ({
+      const postsWithScores = categoryFiltered.map(post => ({
         post,
         score: calculateRelevanceScore(post, search)
       }));
@@ -109,7 +118,7 @@ const BlogPosts = ({ search = '' }) => {
 
       setFilteredPosts(filtered);
     }
-  }, [search, blogPosts]);
+  }, [search, selectedCategory, blogPosts]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -165,7 +174,16 @@ const BlogPosts = ({ search = '' }) => {
     );
   }
 
-  if (!loading && filteredPosts.length === 0 && search.trim()) {
+  if (!loading && filteredPosts.length === 0) {
+    let message = "No articles found.";
+    if (search.trim() && selectedCategory !== 'All') {
+      message = `No articles found in "${selectedCategory}" matching "${search}"`;
+    } else if (search.trim()) {
+      message = `No articles found matching "${search}"`;
+    } else if (selectedCategory !== 'All') {
+      message = `No articles found in category "${selectedCategory}"`;
+    }
+    
     return (
       <div className="main-column-spec">
         <div className="mb-8">
@@ -173,7 +191,7 @@ const BlogPosts = ({ search = '' }) => {
           <div className="w-24 h-1 bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] rounded-full"></div>
         </div>
         <div className="text-center py-10">
-          <p className="text-gray-700">No articles found matching "{search}"</p>
+          <p className="text-gray-700">{message}</p>
         </div>
       </div>
     );

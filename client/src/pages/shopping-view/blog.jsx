@@ -8,6 +8,7 @@ import '@/styles/blog.css';
 const BlogPage = () => {
   const [searchQuery, setSearchQuery] = useState(''); // Actual search query used for filtering
   const [searchInput, setSearchInput] = useState(''); // Input value in the search bar
+  const [selectedCategory, setSelectedCategory] = useState('All'); // Selected category filter
 
   const handleSearch = () => {
     setSearchQuery(searchInput);
@@ -16,8 +17,14 @@ const BlogPage = () => {
   return (
     <div className="min-h-screen bg-[#EAF2FB] dark:bg-slate-900 text-gray-900 dark:text-white">
       <main className="blog-container-spec py-10">
-        <BlogPosts search={searchQuery} />
-        <Sidebar searchInput={searchInput} setSearchInput={setSearchInput} onSearch={handleSearch} />
+        <BlogPosts search={searchQuery} selectedCategory={selectedCategory} />
+        <Sidebar 
+          searchInput={searchInput} 
+          setSearchInput={setSearchInput} 
+          onSearch={handleSearch}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
       </main>
 
       <Pagination />
