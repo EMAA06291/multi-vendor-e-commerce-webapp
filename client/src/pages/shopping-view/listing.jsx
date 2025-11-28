@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
-import { sortOptions } from "@/config";
+import { sortOptions, filterOptions } from "@/config";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import {
   fetchAllFilteredProducts,
@@ -51,10 +51,25 @@ function ShoppingListing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [priceRange, setPriceRange] = useState([0, 0]);
+  const [priceLimits, setPriceLimits] = useState([0, 0]);
   const PRODUCTS_PER_PAGE = 12;
   const { toast } = useToast();
 
   const categorySearchParam = searchParams.get("category");
+  const allowedFilterKeys = Object.keys(filterOptions);
+
+  function sanitizeFilters(rawFilters = {}) {
+    const sanitized = {};
+
+    Object.entries(rawFilters).forEach(([key, value]) => {
+      if (allowedFilterKeys.includes(key) && Array.isArray(value) && value.length) {
+        sanitized[key] = value;
+      }
+    });
+
+    return sanitized;
+  }
 
   function handleSort(value) {
     setSort(value);
@@ -151,7 +166,14 @@ function ShoppingListing() {
 
   useEffect(() => {
     setSort("price-lowtohigh");
-    setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
+    const storedFilters = JSON.parse(sessionStorage.getItem("filters")) || {};
+    const sanitizedStoredFilters = sanitizeFilters(storedFilters);
+
+    if (categorySearchParam) {
+      sanitizedStoredFilters.category = [categorySearchParam];
+    }
+
+    setFilters(sanitizedStoredFilters);
   }, [categorySearchParam]);
 
   useEffect(() => {
@@ -174,17 +196,77 @@ function ShoppingListing() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
+  useEffect(() => {
+    if (productList && productList.length > 0) {
+      const prices = productList
+        .map((product) =>
+          product?.salePrice > 0 ? product.salePrice : product?.price
+        )
+        .filter((price) => typeof price === "number" && !isNaN(price));
+
+      if (prices.length > 0) {
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+
+        setPriceLimits([minPrice, maxPrice]);
+
+        setPriceRange((prevRange) => {
+          if (prevRange[0] === 0 && prevRange[1] === 0) {
+            return [minPrice, maxPrice];
+          }
+
+          const clampedMin = Math.max(minPrice, prevRange[0]);
+          const clampedMax = Math.min(maxPrice, prevRange[1]);
+
+          if (clampedMin > clampedMax) {
+            return [minPrice, maxPrice];
+          }
+
+          return [clampedMin, clampedMax];
+        });
+      }
+    } else {
+      setPriceLimits([0, 0]);
+      setPriceRange([0, 0]);
+    }
+  }, [productList]);
+
+  function handlePriceRangeChange(range) {
+    setPriceRange(range);
+    setCurrentPage(1);
+  }
+
+  const filteredProducts = (productList || []).filter((product) => {
+    const productPrice =
+      product?.salePrice > 0 ? product.salePrice : product?.price;
+
+    if (priceLimits[0] === priceLimits[1]) {
+      return true;
+    }
+
+    return (
+      productPrice >= priceRange[0] &&
+      productPrice <= priceRange[1]
+    );
+  });
+
   console.log(productList, "productListproductListproductList");
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
-      <ProductFilter filters={filters} handleFilter={handleFilter} />
+      <ProductFilter
+        filters={filters}
+        handleFilter={handleFilter}
+        priceRange={priceRange}
+        priceLimits={priceLimits}
+        onPriceRangeChange={handlePriceRangeChange}
+      />
       <div className="bg-background w-full rounded-lg shadow-sm">
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-extrabold">All Products</h2>
           <div className="flex items-center gap-3">
             <span className="text-muted-foreground">
-              {productList?.length} Products
+              {filteredProducts.length} Products
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -213,13 +295,13 @@ function ShoppingListing() {
           </div>
         </div>
         <div className="shop-products-grid">
-          {productList && productList.length > 0 ? (
+          {filteredProducts && filteredProducts.length > 0 ? (
             <>
               {(() => {
-                const totalPages = Math.ceil(productList.length / PRODUCTS_PER_PAGE);
+                const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
                 const safePage = Math.min(Math.max(1, currentPage), totalPages);
                 const start = (safePage - 1) * PRODUCTS_PER_PAGE;
-                const currentProducts = productList.slice(start, start + PRODUCTS_PER_PAGE);
+                const currentProducts = filteredProducts.slice(start, start + PRODUCTS_PER_PAGE);
                 
                 return (
                   <>
