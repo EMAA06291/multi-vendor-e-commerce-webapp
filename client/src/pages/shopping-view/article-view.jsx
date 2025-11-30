@@ -77,15 +77,6 @@ const ArticleViewPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-[#ADC6E5] py-10">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Back Button */}
-          <Button
-            onClick={() => navigate("/shop/blog")}
-            variant="outline"
-            className="mb-6 border-white/30 text-white hover:bg-white/10"
-          >
-            ← Back to Blog
-          </Button>
-
         {/* Article Content */}
         <article className="bg-white/10 backdrop-blur-lg rounded-lg p-8 shadow-xl">
           {/* Category */}
