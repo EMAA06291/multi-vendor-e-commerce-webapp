@@ -1,175 +1,251 @@
-import ProductImageUpload from "@/components/admin-view/image-upload";
-import { Button } from "@/components/ui/button";
-import { addFeatureImage, getFeatureImages } from "@/store/common-slice";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import apiClient, { API_ENDPOINTS } from "@/config/api";
+import {
+  Store,
+  DollarSign,
+  ShoppingBag,
+  TrendingUp,
+  Package,
+  Users,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  XCircle,
+} from "lucide-react";
 
 function AdminDashboard() {
-  const [imageFile, setImageFile] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
-  const [imageLoadingState, setImageLoadingState] = useState(false);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { featureImageList } = useSelector((state) => state.commonFeature);
-
-  function handleUploadFeatureImage() {
-    if (!uploadedImageUrl) return;
-    dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(getFeatureImages());
-        setImageFile(null);
-        setUploadedImageUrl("");
-      }
-    });
-  }
+  const [statistics, setStatistics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dispatch(getFeatureImages());
-  }, [dispatch]);
+    fetchStatistics();
+  }, []);
 
-  const totalFeatures = featureImageList?.length || 0;
+  const fetchStatistics = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get(API_ENDPOINTS.ADMIN.ORDERS.STATISTICS);
+      if (response.data.success) {
+        setStatistics(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3785D8]"></div>
+      </div>
+    );
+  }
+
+  if (!statistics) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600 dark:text-gray-400">Failed to load statistics</p>
+      </div>
+    );
+  }
+
+  const statCards = [
+    {
+      title: "Total Vendors",
+      value: statistics.vendors.total,
+      icon: Store,
+      gradient: "from-blue-500 to-cyan-500",
+      description: `${statistics.vendors.pending} pending approval`,
+    },
+    {
+      title: "Total Revenue",
+      value: `$${statistics.revenue.total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      icon: DollarSign,
+      gradient: "from-emerald-500 to-teal-500",
+      description: `$${statistics.revenue.monthly.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} this month`,
+    },
+    {
+      title: "Total Orders",
+      value: statistics.orders.total,
+      icon: ShoppingBag,
+      gradient: "from-purple-500 to-pink-500",
+      description: `${statistics.orders.monthly} orders this month`,
+    },
+    {
+      title: "Total Products",
+      value: statistics.products.total,
+      icon: Package,
+      gradient: "from-orange-500 to-red-500",
+      description: "Across all vendors",
+    },
+    {
+      title: "Average Order Value",
+      value: `$${statistics.averageOrderValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      icon: TrendingUp,
+      gradient: "from-indigo-500 to-blue-500",
+      description: "Per transaction",
+    },
+    {
+      title: "Monthly Sales",
+      value: statistics.orders.monthly,
+      icon: Calendar,
+      gradient: "from-violet-500 to-purple-500",
+      description: "Orders this month",
+    },
+  ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
+      {/* Hero Section */}
       <section className="rounded-[32px] bg-gradient-to-r from-[#1E0F75] via-[#2f3fbd] to-[#3785D8] text-white p-8 shadow-xl">
-        <div className="grid gap-6 lg:grid-cols-2 items-center">
-          <div className="space-y-4">
-            <p className="uppercase tracking-[0.3em] text-xs text-white/70">
-              Marketplace Spotlight
-            </p>
-            <h1 className="text-3xl lg:text-4xl font-bold leading-tight">
-              Curate the home experience for every shopper
-            </h1>
-            <p className="text-white/80">
-              Upload featured imagery, craft editorial moments, and keep the
-              shopping journey aligned with our artisan-first vision.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={() => navigate("/admin/write-article")}
-                className="bg-white text-[#1E0F75] hover:bg-white/90"
-              >
-                Write an Article
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/shop/home")}
-                className="border-white/40 text-white hover:bg-white/10"
-              >
-                View Live Marketplace
-              </Button>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-3xl bg-white/10 backdrop-blur p-5">
-              <Sparkles className="w-8 h-8 text-amber-300 mb-3" />
-              <p className="text-sm uppercase text-white/70">Live Features</p>
-              <p className="text-3xl font-bold">{totalFeatures}</p>
-            </div>
-            <div className="rounded-3xl bg-white/10 backdrop-blur p-5">
-              <ImageIcon className="w-8 h-8 text-sky-300 mb-3" />
-              <p className="text-sm uppercase text-white/70">Uploads Ready</p>
-              <p className="text-3xl font-bold">
-                {uploadedImageUrl ? "1" : "0"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-[28px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg p-6 space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold">Feature Uploads</h2>
-              <p className="text-sm text-muted-foreground">
-                Use high-impact imagery (1200x600) to elevate the hero carousel.
-              </p>
-            </div>
-          </div>
-          <ProductImageUpload
-            imageFile={imageFile}
-            setImageFile={setImageFile}
-            uploadedImageUrl={uploadedImageUrl}
-            setUploadedImageUrl={setUploadedImageUrl}
-            setImageLoadingState={setImageLoadingState}
-            imageLoadingState={imageLoadingState}
-            isCustomStyling={true}
-          />
-          <Button
-            onClick={handleUploadFeatureImage}
-            className="w-full bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90"
-            disabled={!uploadedImageUrl}
-          >
-            Publish Feature Image
-          </Button>
-        </div>
-
-        <div className="rounded-[28px] border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-[#fff6fb] via-white to-[#f3f4ff] dark:from-slate-800 dark:via-slate-900 dark:to-slate-900 shadow-lg p-6 space-y-4">
-          <h3 className="text-xl font-semibold text-[#1E0F75] dark:text-white">
-            Editorial Tips
-          </h3>
-          <ul className="space-y-3 text-sm text-muted-foreground">
-            <li>
-              • Highlight seasonal collections or limited collaborations to keep
-              shoppers engaged.
-            </li>
-            <li>
-              • Pair each feature image with a story via the "Write Article"
-              action.
-            </li>
-            <li>
-              • Refresh at least twice a week to mirror the Become Seller
-              campaign aesthetic.
-            </li>
-          </ul>
-          <div className="rounded-2xl bg-white/80 dark:bg-slate-800/70 p-4 backdrop-blur">
-            <p className="text-sm text-[#1E0F75] dark:text-slate-200 font-medium">
-              Need curated assets? Reach out to the creative studio for
-              ready-made hero sets.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h3 className="text-2xl font-semibold">Live Feature Gallery</h3>
-          <p className="text-sm text-muted-foreground">
-            {totalFeatures > 0
-              ? "Drag-and-drop ordering arriving soon."
-              : "Start uploading to populate the hero carousel."}
+        <div className="space-y-4">
+          <p className="uppercase tracking-[0.3em] text-xs text-white/70">
+            Admin Dashboard
+          </p>
+          <h1 className="text-3xl lg:text-4xl font-bold leading-tight">
+            Marketplace Overview & Statistics
+          </h1>
+          <p className="text-white/80 max-w-2xl">
+            Monitor your marketplace performance, track vendor activity, and analyze sales data
+            in real-time.
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          {featureImageList && featureImageList.length > 0 ? (
-            featureImageList.map((featureImgItem) => (
-              <div
-                key={featureImgItem._id}
-                className="group relative rounded-3xl overflow-hidden shadow-lg"
-              >
-                <img
-                  src={featureImgItem.image}
-                  className="w-full h-[280px] object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-70 group-hover:opacity-100 transition-opacity"></div>
-                <div className="absolute bottom-4 left-4 text-white">
-                  <p className="text-sm uppercase tracking-widest text-white/70">
-                    Spotlight Visual
-                  </p>
-                  <p className="text-lg font-semibold">Ready for homepage</p>
+      </section>
+
+      {/* Statistics Cards Grid */}
+      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {statCards.map((stat, index) => (
+          <Card
+            key={index}
+            className="rounded-[28px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-r ${stat.gradient} flex items-center justify-center shadow-lg`}>
+                  <stat.icon className="w-7 h-7 text-white" />
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 p-10 text-center text-muted-foreground">
-              No feature imagery yet. Upload your first spotlight above to
-              mirror the Become Seller theme across the site.
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                {stat.title}
+              </h3>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                {stat.value}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                {stat.description}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+
+      {/* Order Status Breakdown */}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card className="rounded-[28px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+              Order Status Overview
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Confirmed</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Completed orders</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {statistics.orders.confirmed}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Pending</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Awaiting processing</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                  {statistics.orders.pending}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center">
+                    <XCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Cancelled</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Cancelled orders</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                  {statistics.orders.cancelled}
+                </p>
+              </div>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[28px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+              Vendor Management
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
+                    <Store className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Active Vendors</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Approved and operating</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+                  {statistics.vendors.total}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Pending Approval</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Awaiting review</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 text-transparent bg-clip-text">
+                  {statistics.vendors.pending}
+                </p>
+              </div>
+
+              <Button
+                onClick={() => navigate("/admin/vendors")}
+                className="w-full bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90 text-white rounded-xl h-12 text-base font-semibold"
+              >
+                Manage Vendors
+              </Button>
+      </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

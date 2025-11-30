@@ -1,5 +1,6 @@
 const Wishlist = require("../../models/Wishlist");
 const Product = require("../../models/Product");
+const ProductReview = require("../../models/Review");
 const mongoose = require("mongoose");
 
 // Add product to wishlist
@@ -163,11 +164,24 @@ const getWishlist = async (req, res) => {
     // Filter out any null products (in case product was deleted)
     const validProducts = wishlist.products.filter((item) => item.productId);
 
+    // Get reviews count for each product
+    const productsWithReviews = await Promise.all(
+      validProducts.map(async (item) => {
+        const product = item.productId.toObject ? item.productId.toObject() : item.productId;
+        const reviewsCount = await ProductReview.countDocuments({ productId: product._id });
+        return {
+          ...product,
+          reviews: reviewsCount,
+          reviewsCount: reviewsCount,
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
       data: {
         userId: wishlist.userId,
-        products: validProducts.map((item) => item.productId),
+        products: productsWithReviews,
       },
     });
   } catch (error) {

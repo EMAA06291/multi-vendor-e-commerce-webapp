@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient, { API_ENDPOINTS } from '@/config/api';
 
-const Sidebar = ({ search, setSearch }) => {
-  const [activeCategory, setActiveCategory] = useState('Gaming');
+const Sidebar = ({ searchInput, setSearchInput, onSearch, selectedCategory, setSelectedCategory }) => {
   const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [popularTags, setPopularTags] = useState([]);
 
   useEffect(() => {
     const fetchRecentPosts = async () => {
@@ -31,6 +32,66 @@ const Sidebar = ({ search, setSearch }) => {
     fetchRecentPosts();
   }, []);
 
+  // Fetch all posts to extract unique categories and tags
+  useEffect(() => {
+    const fetchCategoriesAndTags = async () => {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.SHOP.BLOG.GET, {
+          params: {
+            limit: 1000, // High limit to get all posts
+            published: true
+          }
+        });
+        
+        if (response.data.success) {
+          const articles = response.data.articles || [];
+          
+          // Extract unique categories from articles
+          const uniqueCategories = [...new Set(
+            articles
+              .map(article => article.category)
+              .filter(category => category && category.trim() !== '')
+          )];
+          
+          // Create categories with counts
+          const categoriesWithCounts = uniqueCategories.map(category => {
+            const count = articles.filter(article => article.category === category).length;
+            return { name: category, count };
+          }).sort((a, b) => b.count - a.count); // Sort by count descending
+          
+          setCategories(categoriesWithCounts);
+
+          // Extract and count tags from articles
+          const tagCounts = {};
+          articles.forEach(article => {
+            if (article.tags && Array.isArray(article.tags)) {
+              article.tags.forEach(tag => {
+                const normalizedTag = tag.trim();
+                if (normalizedTag) {
+                  tagCounts[normalizedTag] = (tagCounts[normalizedTag] || 0) + 1;
+                }
+              });
+            }
+          });
+
+          // Convert to array and sort by count (most popular first)
+          const tagsArray = Object.entries(tagCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10); // Get top 10 most popular tags
+
+          setPopularTags(tagsArray);
+        }
+      } catch (err) {
+        console.error("Error fetching categories and tags:", err);
+        setCategories([]);
+        setPopularTags([]);
+      }
+    };
+
+    fetchCategoriesAndTags();
+  }, []);
+
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return "Unknown date";
@@ -42,36 +103,42 @@ const Sidebar = ({ search, setSearch }) => {
     });
   };
 
-  const categories = [
-    { name: "Gaming", count: 12 },
-    { name: "Smart Gadget", count: 5 },
-    { name: "Software", count: 29 },
-    { name: "Electronics", count: 24 },
-    { name: "Laptop", count: 8 },
-    { name: "Mobile & Accessories", count: 16 },
-    { name: "Appliance", count: 24 }
-  ];
 
-  const popularTags = [
-    "Technology", "Gaming", "Reviews", "Tutorials", "News",
-    "Hardware", "Software", "Mobile", "PC", "Accessories"
-  ];
 
   return (
     <aside className="blog-sidebar">
       <div>
-        <div className="search-container">
+        <form 
+          className="search-container"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSearch();
+          }}
+        >
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Searching..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onSearch();
+              }
+            }}
+            placeholder="Search articles..."
             className="search-input"
           />
-          <button className="search-button">
+          <button 
+            type="submit" 
+            className="search-button"
+            onClick={(e) => {
+              e.preventDefault();
+              onSearch();
+            }}
+          >
             <i className="fa-solid fa-search"></i>
           </button>
-        </div>
+        </form>
       </div>
 
       <div className="sidebar-widget recent-posts-widget">
@@ -115,14 +182,27 @@ const Sidebar = ({ search, setSearch }) => {
       <div className="sidebar-widget categories-widget">
         <h3 className="widget-title">Categories</h3>
         <div className="categories-list">
-          {categories.slice(0, 5).map((category, index) => (
+          {/* All category option */}
+          <a 
+            href="#"
+            className={`category-pill ${selectedCategory === 'All' ? 'active' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              setSelectedCategory('All');
+            }}
+          >
+            <span className="category-name">All</span>
+            <i className="fa-solid fa-angle-right"></i>
+          </a>
+          {/* Dynamic categories from blogs */}
+          {categories.slice(0, 4).map((category, index) => (
             <a 
               key={index} 
               href="#"
-              className={`category-pill ${activeCategory === category.name ? 'active' : ''}`}
+              className={`category-pill ${selectedCategory === category.name ? 'active' : ''}`}
               onClick={(e) => {
                 e.preventDefault();
-                setActiveCategory(category.name);
+                setSelectedCategory(category.name);
               }}
             >
               <span className="category-name">{category.name}</span>
@@ -135,8 +215,23 @@ const Sidebar = ({ search, setSearch }) => {
       <div className="sidebar-widget categories-count-widget">
         <h3 className="widget-title">Popular Categories</h3>
         <div className="categories-count-list">
+          {/* All category with total count */}
+          <div 
+            className={`category-row ${selectedCategory === 'All' ? 'active' : ''}`}
+            onClick={() => setSelectedCategory('All')}
+            style={{ cursor: 'pointer' }}
+          >
+            <span className="category-label">All</span>
+            <span className="category-count">{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
+          </div>
+          {/* Dynamic categories with counts */}
           {categories.map((category, index) => (
-            <div key={index} className="category-row">
+            <div 
+              key={index} 
+              className={`category-row ${selectedCategory === category.name ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(category.name)}
+              style={{ cursor: 'pointer' }}
+            >
               <span className="category-label">{category.name}</span>
               <span className="category-count">{category.count}</span>
             </div>
@@ -144,24 +239,26 @@ const Sidebar = ({ search, setSearch }) => {
         </div>
       </div>
 
-      <div className="sidebar-widget cta-widget">
-        <div className="cta-banner">
-          <h4 className="cta-title">Premium Content</h4>
-          <p className="cta-text">Access exclusive articles and tutorials</p>
-          <button className="cta-button">
-            Subscribe Now
-          </button>
-        </div>
-      </div>
-
       <div className="sidebar-widget tags-widget">
         <h3 className="widget-title">Popular Tags</h3>
         <div className="tags-container">
-          {popularTags.map((tag, index) => (
-            <a key={index} href="#" className="tag-pill">
-              {tag}
-            </a>
-          ))}
+          {popularTags.length > 0 ? (
+            popularTags.map((tag, index) => (
+              <a 
+                key={index} 
+                href="#" 
+                className="tag-pill"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // You can add tag filtering functionality here if needed
+                }}
+              >
+                {tag.name}
+              </a>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-2">No tags available</p>
+          )}
         </div>
       </div>
     </aside>

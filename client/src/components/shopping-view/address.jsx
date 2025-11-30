@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import CommonForm from "../common/form";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { addressFormControls } from "@/config";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -20,7 +20,7 @@ const initialAddressFormData = {
   notes: "",
 };
 
-function Address({ setCurrentSelectedAddress, selectedId }) {
+function Address({ setCurrentSelectedAddress, selectedId, hideHeader = false }) {
   const [formData, setFormData] = useState(initialAddressFormData);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const dispatch = useDispatch();
@@ -112,36 +112,53 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
   console.log(addressList, "addressList");
 
   return (
-    <Card>
-      <div className="mb-5 p-3 grid grid-cols-1 sm:grid-cols-2  gap-2">
-        {addressList && addressList.length > 0
-          ? addressList.map((singleAddressItem) => (
+    <div className="space-y-6">
+      {!hideHeader && (
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {currentEditedId !== null ? "Edit Address" : "Add New Address"}
+          </h2>
+          <p className="text-gray-700 dark:text-slate-200">
+            Manage your delivery addresses for faster checkout
+          </p>
+        </div>
+      )}
+
+      {/* Existing Addresses */}
+      {addressList && addressList.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Saved Addresses ({addressList.length}/3)
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {addressList.map((singleAddressItem) => (
               <AddressCard
+                key={singleAddressItem._id}
                 selectedId={selectedId}
                 handleDeleteAddress={handleDeleteAddress}
                 addressInfo={singleAddressItem}
                 handleEditAddress={handleEditAddress}
                 setCurrentSelectedAddress={setCurrentSelectedAddress}
               />
-            ))
-          : null}
-      </div>
-      <CardHeader>
-        <CardTitle>
-          {currentEditedId !== null ? "Edit Address" : "Add New Address"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <CommonForm
-          formControls={addressFormControls}
-          formData={formData}
-          setFormData={setFormData}
-          buttonText={currentEditedId !== null ? "Edit" : "Add"}
-          onSubmit={handleManageAddress}
-          isBtnDisabled={!isFormValid()}
-        />
-      </CardContent>
-    </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Address Form */}
+      <Card className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md">
+        <CardContent className="p-6 space-y-4">
+          <CommonForm
+            formControls={addressFormControls}
+            formData={formData}
+            setFormData={setFormData}
+            buttonText={currentEditedId !== null ? "Update Address" : "Add Address"}
+            onSubmit={handleManageAddress}
+            isBtnDisabled={!isFormValid()}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

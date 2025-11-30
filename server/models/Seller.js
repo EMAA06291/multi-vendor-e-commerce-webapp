@@ -42,6 +42,10 @@ const SellerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    allowCustomProducts: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

@@ -18,6 +18,8 @@ import {
 } from "@/store/admin/products-slice";
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Plus } from "lucide-react";
+import "@/styles/shop-listing.css";
 
 const initialFormData = {
   image: null,
@@ -39,6 +41,8 @@ function AdminProducts() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 12;
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
@@ -100,28 +104,87 @@ function AdminProducts() {
     dispatch(fetchAllProducts());
   }, [dispatch]);
 
+  // Calculate pagination
+  const totalPages = Math.ceil((productList?.length || 0) / PRODUCTS_PER_PAGE);
+  const safePage = Math.min(Math.max(1, currentPage), totalPages || 1);
+  const startIndex = (safePage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const currentProducts = productList?.slice(startIndex, endIndex) || [];
+
   console.log(formData, "productList");
 
   return (
     <Fragment>
-      <div className="mb-5 w-full flex justify-end">
-        <Button onClick={() => setOpenCreateProductsDialog(true)}>
+      <div className="mb-5 w-full flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Products Management
+        </h2>
+        <Button 
+          onClick={() => setOpenCreateProductsDialog(true)}
+          className="shop-add-btn"
+          style={{ width: "auto", marginTop: 0 }}
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Add New Product
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0
-          ? productList.map((productItem) => (
+      
+      {productList && productList.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+            {currentProducts.map((productItem) => (
               <AdminProductTile
+                key={productItem._id}
                 setFormData={setFormData}
                 setOpenCreateProductsDialog={setOpenCreateProductsDialog}
                 setCurrentEditedId={setCurrentEditedId}
                 product={productItem}
                 handleDelete={handleDelete}
               />
-            ))
-          : null}
-      </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="shop-pagination">
+              <button
+                className="shop-nav-btn"
+                onClick={() => setCurrentPage((s) => Math.max(1, s - 1))}
+                disabled={safePage === 1}
+                aria-label="Previous page"
+              >
+                ‹ Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`shop-page-btn ${safePage === i + 1 ? "active" : ""}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                  aria-current={safePage === i + 1 ? "page" : undefined}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button
+                className="shop-nav-btn"
+                onClick={() => setCurrentPage((s) => Math.min(totalPages, s + 1))}
+                disabled={safePage === totalPages}
+                aria-label="Next page"
+              >
+                Next ›
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            No products found. Add your first product to get started!
+          </p>
+        </div>
+      )}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {

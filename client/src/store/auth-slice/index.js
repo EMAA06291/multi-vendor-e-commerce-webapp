@@ -68,7 +68,16 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (state, action) => {},
+    setUser: (state, action) => {
+      if (action.payload) {
+        state.user = action.payload;
+      }
+    },
+    updateUserProfilePic: (state, action) => {
+      if (state.user && action.payload) {
+        state.user.profilePic = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -121,5 +130,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser } = authSlice.actions;
+export const { setUser, updateUserProfilePic } = authSlice.actions;
 export default authSlice.reducer;

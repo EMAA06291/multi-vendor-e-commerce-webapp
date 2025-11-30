@@ -1,23 +1,23 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Star, Heart, ShoppingCart } from "lucide-react";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { useDispatch } from "react-redux";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { fetchProductDetails } from "@/store/shop/products-slice";
+import { fetchProductDetails, setProductDetails } from "@/store/shop/products-slice";
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
 
 const Wishlist = () => {
   const { user } = useSelector((state) => state.auth);
+  const { productDetails } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [wishlistProducts, setWishlistProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removingIds, setRemovingIds] = useState(new Set());
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -26,6 +26,12 @@ const Wishlist = () => {
       setLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (productDetails !== null) {
+      setOpenDetailsDialog(true);
+    }
+  }, [productDetails]);
 
   const fetchWishlist = async () => {
     try {
@@ -90,7 +96,6 @@ const Wishlist = () => {
 
   const handleGetProductDetails = (productId) => {
     dispatch(fetchProductDetails(productId));
-    navigate(`/shop/products/${productId}`);
   };
 
   const handleAddToCart = async (productId) => {
@@ -132,16 +137,19 @@ const Wishlist = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Please Login</h1>
-          <p className="text-white/70 mb-6">You need to be logged in to view your wishlist</p>
-          <Button
+      <div className="w-full p-6" style={{ background: "#CBD8E8" }}>
+        <div className="text-center py-20">
+          <h1 className="text-3xl font-bold mb-4" style={{ color: "#1C1DAB" }}>Please Login</h1>
+          <p className="mb-6" style={{ color: "#1C1DAB" }}>You need to be logged in to view your wishlist</p>
+          <button
             onClick={() => navigate("/auth/login")}
-            className="bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90 text-white"
+            className="text-white px-6 py-2 rounded-md"
+            style={{
+              background: "linear-gradient(135deg,#1C1DAB,#3785D8)",
+            }}
           >
             Go to Login
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -149,127 +157,186 @@ const Wishlist = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading wishlist...</p>
+      <div className="w-full p-6" style={{ background: "#CBD8E8" }}>
+        <div className="text-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "#1C1DAB" }}></div>
+          <p style={{ color: "#1C1DAB" }}>Loading wishlist...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (wishlistProducts.length === 0) {
+    return (
+      <div className="w-full p-6" style={{ background: "#CBD8E8" }}>
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold mb-4" style={{ color: "#1C1DAB" }}>Your wishlist is empty</h2>
+          <p className="mb-8" style={{ color: "#1C1DAB" }}>
+            Start adding products you love to your wishlist
+          </p>
+          <button
+            onClick={() => navigate("/shop/listing")}
+            className="text-white px-6 py-2 rounded-md"
+            style={{
+              background: "linear-gradient(135deg,#1C1DAB,#3785D8)",
+            }}
+          >
+            Browse Products
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-white py-10">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Wishlist</h1>
-          <p className="text-white/70">
-            {wishlistProducts.length === 0
-              ? "Your wishlist is empty"
-              : `${wishlistProducts.length} item${wishlistProducts.length > 1 ? "s" : ""} in your wishlist`}
-          </p>
-        </div>
+    <div className="w-full p-6" style={{ background: "#CBD8E8" }}>
+      <div
+        className="overflow-x-auto border rounded-xl shadow-sm"
+        style={{ background: "#FFFFFF" }}
+      >
+        <table className="w-full text-left">
+          {/* === HEADER — SAME COLOR AS ADD TO CART === */}
+          <thead
+            style={{
+              background: "linear-gradient(135deg,#1C1DAB,#3785D8)",
+              color: "#FFFFFF",
+            }}
+            className="text-sm font-semibold"
+          >
+            <tr>
+              <th className="p-4">Delete</th>
+              <th className="p-4">Product Name</th>
+              <th className="p-4">Unit Price</th>
+              <th className="p-4">Stock Status</th>
+              <th className="p-4"></th>
+            </tr>
+          </thead>
 
-        {wishlistProducts.length === 0 ? (
-          <div className="text-center py-20">
-            <Heart className="w-24 h-24 mx-auto mb-6 text-white/30" />
-            <h2 className="text-2xl font-bold mb-4">Your wishlist is empty</h2>
-            <p className="text-white/70 mb-8">
-              Start adding products you love to your wishlist
-            </p>
-            <Button
-              onClick={() => navigate("/shop/listing")}
-              className="bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90 text-white"
-            >
-              Browse Products
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* === BODY === */}
+          <tbody>
             {wishlistProducts.map((product) => {
               const displayPrice = product.salePrice > 0 ? product.salePrice : product.price;
               const originalPrice = product.salePrice > 0 ? product.price : null;
               const rating = product.averageReview || 0;
+              const reviews = product.reviews || product.reviewsCount || 0;
               const isRemoving = removingIds.has(product._id);
+              const stockStatus = product.totalStock > 0 ? "In Stock" : "Out of Stock";
+              const tags = product.category ? [product.category] : [];
 
               return (
-                <Card
-                  key={product._id}
-                  className="border-0 shadow-md hover:shadow-lg transition-all bg-white/10 backdrop-blur-lg border-white/20 rounded-2xl overflow-hidden group"
-                >
-                  <CardContent className="p-0">
-                    <div className="relative overflow-hidden">
+                <tr key={product._id} className="border-b">
+                  {/* REMOVE */}
+                  <td
+                    className="p-4 text-gray-600 cursor-pointer flex items-center gap-1"
+                    style={{ color: "#1C1DAB" }}
+                    onClick={() => !isRemoving && handleRemoveFromWishlist(product._id)}
+                  >
+                    {isRemoving ? "⏳ Removing..." : "❌ Remove"}
+                  </td>
+
+                  {/* PRODUCT */}
+                  <td className="p-4">
+                    <div className="flex gap-4 items-start">
                       <img
-                        src={
-                          product.image ||
-                          "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"
-                        }
+                        src={product.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"}
                         alt={product.title}
-                        className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                        className="w-24 h-24 rounded-lg object-cover border transform transition duration-300 hover:scale-105 active:scale-110 cursor-pointer"
+                        style={{ borderColor: "#ADC6E5" }}
                         onClick={() => handleGetProductDetails(product._id)}
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
-                        onClick={() => handleRemoveFromWishlist(product._id)}
-                        disabled={isRemoving}
-                      >
-                        <Heart className={`w-5 h-5 fill-red-500 text-red-500 ${isRemoving ? "opacity-50" : ""}`} />
-                      </Button>
-                    </div>
 
-                    <div className="p-6 flex flex-col items-center text-center space-y-3">
-                      <h3 className="text-lg font-semibold text-white">{product.title}</h3>
-                      <div className="flex items-center gap-2">
-                        <p className="text-white font-bold">${displayPrice}</p>
-                        {originalPrice && (
-                          <p className="text-white/50 line-through text-sm">
-                            ${originalPrice}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1 text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.round(rating)
-                                ? "fill-yellow-400"
-                                : "opacity-30"
-                            }`}
-                          />
-                        ))}
-                        <span className="text-sm text-white/70 ml-1">
-                          {rating.toFixed(1)}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-2 w-full mt-4">
-                        <Button
-                          className="flex-1 bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white hover:opacity-90 transition-all duration-300"
+                      <div>
+                        <h2
+                          className="font-semibold cursor-pointer"
+                          style={{ color: "#1C1DAB" }}
                           onClick={() => handleGetProductDetails(product._id)}
                         >
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="border-white/30 text-white hover:bg-white/10"
-                          onClick={() => handleAddToCart(product._id)}
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                        </Button>
+                          {product.title}
+                        </h2>
+
+                        <div className="flex items-center gap-2 text-sm mt-1">
+                          <span
+                            className="text-base font-semibold"
+                            style={{ color: "#1C1DAB" }}
+                          >
+                            ★ {rating.toFixed(1)}
+                          </span>
+                          <span className="text-gray-500">
+                            {reviews} Reviews
+                          </span>
+                        </div>
+
+                        {tags.length > 0 && (
+                          <div className="flex gap-2 mt-2">
+                            {tags.map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-3 py-1 rounded-md text-xs text-white"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#1C1DAB,#3785D8)",
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </td>
+
+                  {/* PRICE */}
+                  <td
+                    className="p-4 font-semibold"
+                    style={{ color: "#1C1DAB" }}
+                  >
+                    ${displayPrice.toFixed(2)}
+                    {originalPrice && (
+                      <span className="text-gray-400 line-through text-sm ml-2">
+                        ${originalPrice.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+
+                  {/* STOCK */}
+                  <td
+                    className="p-4 font-semibold"
+                    style={{ color: "#1C1DAB" }}
+                  >
+                    {stockStatus}
+                  </td>
+
+                  {/* BUTTON */}
+                  <td className="p-4">
+                    <button
+                      className="text-white px-6 py-2 rounded-md flex items-center gap-2"
+                      style={{
+                        background:
+                          "linear-gradient(135deg,#1C1DAB,#3785D8)",
+                      }}
+                      onClick={() => handleAddToCart(product._id)}
+                      disabled={product.totalStock === 0}
+                    >
+                      Add To Cart 🛒
+                    </button>
+                  </td>
+                </tr>
               );
             })}
-          </div>
-        )}
+          </tbody>
+        </table>
       </div>
+      <ProductDetailsDialog
+        open={openDetailsDialog}
+        setOpen={(open) => {
+          setOpenDetailsDialog(open);
+          if (!open) {
+            dispatch(setProductDetails());
+          }
+        }}
+        productDetails={productDetails}
+      />
     </div>
   );
 };

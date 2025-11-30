@@ -11,11 +11,6 @@ import {
   Shield,
   Award,
   Users,
-  ChefHat,
-  Scissors,
-  Palette,
-  Home,
-  Utensils,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -43,13 +38,6 @@ const footerLinks = {
     { label: "Vendor Agreement", href: "/vendor-agreement" },
     { label: "Refund Policy", href: "/refund" },
   ],
-  categories: [
-    { label: "Tailors", href: "/shop/listing?category=tailors", icon: Scissors },
-    { label: "Home Cooked Food", href: "/shop/listing?category=food", icon: ChefHat },
-    { label: "Handmade Products", href: "/shop/listing?category=handmade", icon: Palette },
-    { label: "Home Services", href: "/shop/listing?category=home-services", icon: Home },
-    { label: "Catering", href: "/shop/listing?category=catering", icon: Utensils },
-  ],
 };
 
 const socialLinks = [
@@ -68,7 +56,7 @@ const contactInfo = {
 
 function ShoppingFooter() {
   return (
-    <footer className="bg-gradient-to-b from-blue-100 via-purple-100 to-white dark:from-slate-900 dark:via-slate-800 dark:to-black text-gray-800 dark:text-white transition-all duration-500 mt-10">
+    <footer className="border-t border-gray-400 dark:border-gray-600 bg-gradient-to-b from-blue-100 via-purple-100 to-white dark:from-slate-900 dark:via-slate-800 dark:to-black text-gray-800 dark:text-white transition-all duration-500 ">
       <div className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2">
@@ -164,16 +152,15 @@ function ShoppingFooter() {
 
           <div>
             <h4 className="font-semibold mb-4 text-gray-800 dark:text-white">
-              Categories
+              Legal
             </h4>
             <ul className="space-y-2">
-              {footerLinks.categories.map((link) => (
+              {footerLinks.legal.map((link) => (
                 <li key={link.label}>
                   <Link
                     to={link.href}
-                    className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white transition-colors flex items-center gap-2"
+                    className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white transition-colors"
                   >
-                    <link.icon className="w-4 h-4 text-purple-500 dark:text-purple-400" />
                     {link.label}
                   </Link>
                 </li>
@@ -252,22 +239,11 @@ function ShoppingFooter() {
 
       <div className="border-t border-gray-300 dark:border-white/10 bg-gray-100/60 dark:bg-black/40">
         <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center justify-center">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <span>© {new Date().getFullYear()} LuxMart. Made with</span>
               <Heart className="w-4 h-4 text-purple-500 dark:text-purple-400 fill-current" />
               <span>for local communities.</span>
-            </div>
-            <div className="flex flex-wrap gap-4">
-              {footerLinks.legal.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className="text-sm text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
             </div>
           </div>
         </div>

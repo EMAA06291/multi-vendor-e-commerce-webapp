@@ -51,6 +51,9 @@ export const API_ENDPOINTS = {
     LOGIN: "/api/auth/login",
     LOGOUT: "/api/auth/logout",
     CHECK_AUTH: "/api/auth/check-auth",
+    UPLOAD_PROFILE_PICTURE: "/api/auth/upload-profile-picture",
+    UPDATE_PROFILE_PICTURE: (userId) => `/api/auth/update-profile-picture/${userId}`,
+    UPDATE_ACCOUNT: (userId) => `/api/auth/update-account/${userId}`,
   },
   // Admin endpoints
   ADMIN: {
@@ -62,6 +65,7 @@ export const API_ENDPOINTS = {
       UPLOAD_IMAGE: "/api/admin/products/upload-image",
     },
     ORDERS: {
+      STATISTICS: "/api/admin/orders/statistics",
       GET: "/api/admin/orders/get",
       DETAILS: (id) => `/api/admin/orders/details/${id}`,
       UPDATE: (id) => `/api/admin/orders/update/${id}`,
@@ -130,6 +134,10 @@ export const API_ENDPOINTS = {
       REVIEWS: (sellerId) => `/api/vendor/reviews/${sellerId}`,
       UPDATE: (sellerId) => `/api/vendor/update/${sellerId}`,
       FEATURED: "/api/vendor/featured",
+      CUSTOM_PRODUCT: (sellerId) => `/api/vendor/custom-product/${sellerId}`,
+      CUSTOM_PRODUCT_REQUESTS: (sellerId) => `/api/vendor/custom-product-requests/${sellerId}`,
+      ACCEPT_CUSTOM_REQUEST: (requestId) => `/api/vendor/custom-product-request/accept/${requestId}`,
+      REJECT_CUSTOM_REQUEST: (requestId) => `/api/vendor/custom-product-request/reject/${requestId}`,
     },
     BLOG: {
       GET: "/api/blog/get",

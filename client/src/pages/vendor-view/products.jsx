@@ -14,6 +14,8 @@ import { Fragment, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
+import { Plus } from "lucide-react";
+import "@/styles/shop-listing.css";
 
 const initialFormData = {
   image: null,
@@ -102,7 +104,6 @@ function VendorProducts() {
     }
 
     if (currentEditedId !== null) {
-      // Edit product
       apiClient
         .put(
           API_ENDPOINTS.VENDOR.PRODUCTS.EDIT(sellerInfo._id, currentEditedId),
@@ -134,7 +135,6 @@ function VendorProducts() {
           });
         });
     } else {
-      // Add new product
       apiClient
         .post(API_ENDPOINTS.VENDOR.PRODUCTS.ADD(sellerInfo._id), {
           ...formData,
@@ -199,75 +199,75 @@ function VendorProducts() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3785D8]"></div>
       </div>
     );
   }
 
   if (!sellerInfo) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">No Vendor Account Found</h2>
-          <Button onClick={() => navigate("/shop/become-seller")}>
-            Become a Seller
-          </Button>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          No vendor account found
+        </p>
+        <Button onClick={() => navigate("/shop/become-seller")}>
+          Become a Seller
+        </Button>
       </div>
     );
   }
 
   if (sellerInfo.status !== "approved") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            {sellerInfo.status === "pending"
-              ? "Application Pending"
-              : sellerInfo.status === "rejected"
-              ? "Application Rejected"
-              : "Account Suspended"}
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Your vendor account must be approved to manage products.
-          </p>
-          <Button onClick={() => navigate("/shop/home")}>
-            Return to Shop
-          </Button>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Your vendor account must be approved to manage products.
+        </p>
+        <Button onClick={() => navigate("/shop/home")}>
+          Return to Shop
+        </Button>
       </div>
     );
   }
 
   return (
     <Fragment>
-      <div className="mb-5 w-full flex justify-end">
-        <Button onClick={() => setOpenCreateProductsDialog(true)}>
+      <div className="mb-5 w-full flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Products Management
+        </h2>
+        <Button
+          onClick={() => setOpenCreateProductsDialog(true)}
+          className="shop-add-btn"
+          style={{ width: "auto", marginTop: 0 }}
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Add New Product
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0
-          ? productList.map((productItem) => (
-              <AdminProductTile
-                key={productItem._id}
-                setFormData={setFormData}
-                setOpenCreateProductsDialog={setOpenCreateProductsDialog}
-                setCurrentEditedId={setCurrentEditedId}
-                product={productItem}
-                handleDelete={handleDelete}
-              />
-            ))
-          : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">No products yet. Add your first product!</p>
-            </div>
-          )}
-      </div>
+
+      {productList && productList.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {productList.map((productItem) => (
+            <AdminProductTile
+              key={productItem._id}
+              setFormData={setFormData}
+              setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+              setCurrentEditedId={setCurrentEditedId}
+              product={productItem}
+              handleDelete={handleDelete}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            No products yet. Add your first product!
+          </p>
+        </div>
+      )}
+
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -310,5 +310,3 @@ function VendorProducts() {
 }
 
 export default VendorProducts;
-
-

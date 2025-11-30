@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductImageUpload from "@/components/admin-view/image-upload";
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { useToast } from "@/components/ui/use-toast";
-import { Edit2, Save, X, Star } from "lucide-react";
+import { Edit2, Save, X, Star, Sparkles } from "lucide-react";
+import { fetchProductDetails } from "@/store/shop/products-slice";
 
 const VendorProfilePage = () => {
   const { sellerId } = useParams();
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { productDetails } = useSelector((state) => state.shopProducts);
   const { toast } = useToast();
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
@@ -23,6 +27,7 @@ const VendorProfilePage = () => {
   const [error, setError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -185,19 +190,178 @@ const VendorProfilePage = () => {
   };
 
   const handleGetProductDetails = (productId) => {
-    window.location.href = `/shop/products/${productId}`;
+    dispatch(fetchProductDetails(productId));
   };
+
+  useEffect(() => {
+    if (productDetails !== null) setOpenDetailsDialog(true);
+  }, [productDetails]);
 
   const handleAddtoCart = (productId, stock) => {
     console.log("Add to cart:", productId, stock);
   };
 
+  // Custom Product Form Component
+  const CustomProductForm = ({ sellerId, user }) => {
+    const [formData, setFormData] = useState({
+      productDescription: "",
+      quantity: 1,
+      specialRequirements: "",
+      estimatedBudget: "",
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!user) {
+        toast({
+          title: "Please login",
+          description: "You need to be logged in to request custom products",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        const response = await apiClient.post(
+          API_ENDPOINTS.SHOP.VENDOR.CUSTOM_PRODUCT(sellerId),
+          {
+            userId: user.id || user._id,
+            userName: user.userName || "User",
+            userEmail: user.email || "",
+            productDescription: formData.productDescription,
+            quantity: parseInt(formData.quantity) || 1,
+            specialRequirements: formData.specialRequirements,
+            estimatedBudget: formData.estimatedBudget
+              ? parseFloat(formData.estimatedBudget)
+              : null,
+          }
+        );
+
+        if (response.data.success) {
+          toast({
+            title: "Success",
+            description: "Your custom product request has been submitted!",
+          });
+          setFormData({
+            productDescription: "",
+            quantity: 1,
+            specialRequirements: "",
+            estimatedBudget: "",
+          });
+        }
+      } catch (error) {
+        console.error("Error submitting custom product request:", error);
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.message ||
+            "Failed to submit custom product request",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="productDescription" className="text-gray-900 dark:text-white mb-2 block">
+            Product Description *
+          </Label>
+          <Textarea
+            id="productDescription"
+            value={formData.productDescription}
+            onChange={(e) =>
+              setFormData({ ...formData, productDescription: e.target.value })
+            }
+            rows={4}
+            required
+            className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
+            placeholder="Describe the custom product you'd like..."
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="quantity" className="text-gray-900 dark:text-white mb-2 block">
+              Quantity
+            </Label>
+            <Input
+              id="quantity"
+              type="number"
+              min="1"
+              value={formData.quantity}
+              onChange={(e) =>
+                setFormData({ ...formData, quantity: e.target.value })
+              }
+              className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <Label htmlFor="estimatedBudget" className="text-gray-900 dark:text-white mb-2 block">
+              Estimated Budget ($)
+            </Label>
+            <Input
+              id="estimatedBudget"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.estimatedBudget}
+              onChange={(e) =>
+                setFormData({ ...formData, estimatedBudget: e.target.value })
+              }
+              className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label
+            htmlFor="specialRequirements"
+            className="text-gray-900 dark:text-white mb-2 block"
+          >
+            Special Requirements
+          </Label>
+          <Textarea
+            id="specialRequirements"
+            value={formData.specialRequirements}
+            onChange={(e) =>
+              setFormData({ ...formData, specialRequirements: e.target.value })
+            }
+            rows={3}
+            className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
+            placeholder="Any specific requirements, materials, colors, sizes, etc..."
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={isSubmitting || !formData.productDescription.trim()}
+          className="w-full bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90 text-white"
+        >
+          {isSubmitting ? (
+            "Submitting..."
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Submit Custom Product Request
+            </>
+          )}
+        </Button>
+      </form>
+    );
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#EAF2FB] dark:bg-slate-900 text-gray-900 dark:text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading vendor profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3785D8] mx-auto mb-4"></div>
+          <p className="text-gray-900 dark:text-white">Loading vendor profile...</p>
         </div>
       </div>
     );
@@ -205,16 +369,16 @@ const VendorProfilePage = () => {
 
   if (error || !vendor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#EAF2FB] dark:bg-slate-900 text-gray-900 dark:text-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400">{error || "Vendor not found"}</p>
+          <p className="text-red-600 dark:text-red-400">{error || "Vendor not found"}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1E0F75] to-[#1C1DAB] text-white">
+    <div className="min-h-screen bg-[#EAF2FB] dark:bg-slate-900 text-gray-900 dark:text-white">
       {/* Background Image Section */}
       <div className="relative h-64 md:h-80 w-full">
         <img
@@ -227,13 +391,13 @@ const VendorProfilePage = () => {
           alt="Vendor background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         {isVendorOwner && (
           <div className="absolute top-4 right-4">
             {!isEditMode ? (
               <Button
                 onClick={handleEditToggle}
-                className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
+                className="bg-white/90 hover:bg-white text-gray-900 backdrop-blur-sm shadow-lg"
                 size="sm"
               >
                 <Edit2 className="w-4 h-4 mr-2" />
@@ -244,7 +408,7 @@ const VendorProfilePage = () => {
                 <Button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-lg"
                   size="sm"
                 >
                   <Save className="w-4 h-4 mr-2" />
@@ -254,7 +418,7 @@ const VendorProfilePage = () => {
                   onClick={handleEditToggle}
                   disabled={isSaving}
                   variant="outline"
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  className="bg-white/90 hover:bg-white text-gray-900 border-white/30 shadow-lg"
                   size="sm"
                 >
                   <X className="w-4 h-4 mr-2" />
@@ -268,7 +432,7 @@ const VendorProfilePage = () => {
 
       {/* Profile Section */}
       <div className="container mx-auto px-4 -mt-20 relative z-10">
-        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6 md:p-8 shadow-xl">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-xl border border-slate-200 dark:border-slate-700">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Profile Picture */}
             <div className="relative">
@@ -280,7 +444,7 @@ const VendorProfilePage = () => {
                   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop"
                 }
                 alt={vendor.storeName}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/30 object-cover"
+                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white dark:border-slate-700 object-cover shadow-lg"
               />
             </div>
 
@@ -289,7 +453,7 @@ const VendorProfilePage = () => {
               {isEditMode ? (
                 <div className="space-y-4 w-full">
                   <div>
-                    <Label htmlFor="storeName" className="text-white">
+                    <Label htmlFor="storeName" className="text-gray-900 dark:text-white">
                       Store Name
                     </Label>
                     <Input
@@ -301,12 +465,12 @@ const VendorProfilePage = () => {
                           storeName: e.target.value,
                         })
                       }
-                      className="mt-2 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      className="mt-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
                       placeholder="Enter store name"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="description" className="text-white">
+                    <Label htmlFor="description" className="text-gray-900 dark:text-white">
                       Description
                     </Label>
                     <Textarea
@@ -319,28 +483,28 @@ const VendorProfilePage = () => {
                         })
                       }
                       rows={3}
-                      className="mt-2 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      className="mt-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
                       placeholder="Enter description"
                     />
                   </div>
                 </div>
               ) : (
                 <>
-                  <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900 dark:text-white">
                     {vendor.storeName}
                   </h1>
-                  <p className="text-white/80 mb-4">{vendor.description}</p>
+                  <p className="text-gray-700 dark:text-slate-300 mb-4">{vendor.description}</p>
                 </>
               )}
               <div className="flex flex-wrap gap-2 text-sm mt-4">
-                <span className="bg-white/20 px-3 py-1 rounded-full">
+                <span className="bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white px-3 py-1 rounded-full font-semibold">
                   {vendor.storeCategory}
                 </span>
-                <span className="bg-white/20 px-3 py-1 rounded-full">
+                <span className="bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1 rounded-full">
                   {vendor.businessType}
                 </span>
                 {vendor.status === "approved" && (
-                  <span className="bg-green-500/30 px-3 py-1 rounded-full">
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full">
                     Verified
                   </span>
                 )}
@@ -352,7 +516,7 @@ const VendorProfilePage = () => {
           {isEditMode && isVendorOwner && (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label className="text-white mb-2 block">Profile Picture</Label>
+                <Label className="text-gray-900 dark:text-white mb-2 block">Profile Picture</Label>
                 <ProductImageUpload
                   imageFile={profilePicFile}
                   setImageFile={setProfilePicFile}
@@ -361,11 +525,11 @@ const VendorProfilePage = () => {
                   setUploadedImageUrl={setProfilePicUrl}
                   setImageLoadingState={setProfilePicLoading}
                   isEditMode={false}
-                  isCustomStyling={true}
+                  isCustomStyling={false}
                 />
                 {!profilePicFile && editFormData.profilePic && (
                   <div className="mt-2">
-                    <Label className="text-white/70 text-sm">
+                    <Label className="text-gray-700 dark:text-slate-300 text-sm">
                       Or enter image URL:
                     </Label>
                     <Input
@@ -377,14 +541,14 @@ const VendorProfilePage = () => {
                           profilePic: e.target.value,
                         })
                       }
-                      className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      className="mt-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
                       placeholder="https://example.com/image.jpg"
                     />
                   </div>
                 )}
               </div>
               <div>
-                <Label className="text-white mb-2 block">Background Image</Label>
+                <Label className="text-gray-900 dark:text-white mb-2 block">Background Image</Label>
                 <ProductImageUpload
                   imageFile={backgroundImageFile}
                   setImageFile={setBackgroundImageFile}
@@ -393,11 +557,11 @@ const VendorProfilePage = () => {
                   setUploadedImageUrl={setBackgroundImageUrl}
                   setImageLoadingState={setBackgroundImageLoading}
                   isEditMode={false}
-                  isCustomStyling={true}
+                  isCustomStyling={false}
                 />
                 {!backgroundImageFile && editFormData.backgroundImage && (
                   <div className="mt-2">
-                    <Label className="text-white/70 text-sm">
+                    <Label className="text-gray-700 dark:text-slate-300 text-sm">
                       Or enter image URL:
                     </Label>
                     <Input
@@ -409,7 +573,7 @@ const VendorProfilePage = () => {
                           backgroundImage: e.target.value,
                         })
                       }
-                      className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      className="mt-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-gray-900 dark:text-white"
                       placeholder="https://example.com/image.jpg"
                     />
                   </div>
@@ -419,14 +583,14 @@ const VendorProfilePage = () => {
           )}
 
           {/* Tabs */}
-          <div className="mt-8 flex gap-4 border-b border-white/20">
+          <div className="mt-8 flex gap-4 border-b border-slate-200 dark:border-slate-700">
             <Button
               variant={activeTab === "products" ? "default" : "ghost"}
               onClick={() => setActiveTab("products")}
               className={`${
                 activeTab === "products"
                   ? "bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
+                  : "text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700"
               }`}
             >
               Products ({products.length})
@@ -437,11 +601,25 @@ const VendorProfilePage = () => {
               className={`${
                 activeTab === "reviews"
                   ? "bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
+                  : "text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700"
               }`}
             >
               Reviews ({reviews.length})
             </Button>
+            {vendor.allowCustomProducts && (
+              <Button
+                variant={activeTab === "custom" ? "default" : "ghost"}
+                onClick={() => setActiveTab("custom")}
+                className={`${
+                  activeTab === "custom"
+                    ? "bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white"
+                    : "text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700"
+                }`}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Request Custom Product
+              </Button>
+            )}
           </div>
 
           {/* Content Section */}
@@ -450,7 +628,7 @@ const VendorProfilePage = () => {
               <div>
                 {products.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-white/70">No products available yet.</p>
+                    <p className="text-gray-600 dark:text-slate-400">No products available yet.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -462,26 +640,26 @@ const VendorProfilePage = () => {
                       return (
                         <Card
                           key={product._id}
-                          className="border-0 shadow-md hover:shadow-lg transition-all bg-white/10 backdrop-blur-lg border-white/20 rounded-2xl overflow-hidden group"
+                          className="border-0 shadow-md hover:shadow-lg transition-all bg-white dark:bg-slate-800 rounded-2xl overflow-hidden group cursor-pointer"
+                          onClick={() => handleGetProductDetails(product._id)}
                         >
                           <CardContent className="p-0">
                             <div className="relative overflow-hidden">
                               <img
                                 src={product.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop"}
                                 alt={product.title}
-                                className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                                onClick={() => handleGetProductDetails(product._id)}
+                                className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             </div>
 
                             <div className="p-6 flex flex-col items-center text-center space-y-3">
-                              <h3 className="text-lg font-semibold text-white">{product.title}</h3>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{product.title}</h3>
                               <div className="flex items-center gap-2">
-                                <p className="text-white font-bold">
+                                <p className="text-gray-900 dark:text-white font-bold">
                                   ${displayPrice}
                                 </p>
                                 {originalPrice && (
-                                  <p className="text-white/50 line-through text-sm">
+                                  <p className="text-gray-500 dark:text-slate-400 line-through text-sm">
                                     ${originalPrice}
                                   </p>
                                 )}
@@ -498,14 +676,17 @@ const VendorProfilePage = () => {
                                     }`}
                                   />
                                 ))}
-                                <span className="text-sm text-white/70 ml-1">
+                                <span className="text-sm text-gray-600 dark:text-slate-400 ml-1">
                                   {rating.toFixed(1)}
                                 </span>
                               </div>
 
                               <Button
                                 className="w-full mt-4 bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white hover:opacity-90 transition-all duration-300"
-                                onClick={() => handleGetProductDetails(product._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleGetProductDetails(product._id);
+                                }}
                               >
                                 Buy Now
                               </Button>
@@ -517,26 +698,26 @@ const VendorProfilePage = () => {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === "reviews" ? (
               <div>
                 {reviews.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-white/70">No reviews yet.</p>
+                    <p className="text-gray-600 dark:text-slate-400">No reviews yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {reviews.map((review) => (
                       <Card
                         key={review._id}
-                        className="bg-white/10 backdrop-blur-lg border-white/20"
+                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md"
                       >
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div>
-                              <h3 className="font-semibold text-white">
+                              <h3 className="font-semibold text-gray-900 dark:text-white">
                                 {review.userName || "Anonymous"}
                               </h3>
-                              <p className="text-sm text-white/70">
+                              <p className="text-sm text-gray-600 dark:text-slate-400">
                                 {new Date(review.createdAt).toLocaleDateString("en-US", {
                                   year: "numeric",
                                   month: "long",
@@ -551,7 +732,7 @@ const VendorProfilePage = () => {
                                   className={`text-lg ${
                                     i < review.reviewValue
                                       ? "text-yellow-400"
-                                      : "text-white/30"
+                                      : "text-gray-300 dark:text-slate-600"
                                   }`}
                                 >
                                   ★
@@ -559,17 +740,37 @@ const VendorProfilePage = () => {
                               ))}
                             </div>
                           </div>
-                          <p className="text-white/90">{review.reviewMessage}</p>
+                          <p className="text-gray-700 dark:text-slate-300">{review.reviewMessage}</p>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
                 )}
               </div>
-            )}
+            ) : activeTab === "custom" && vendor.allowCustomProducts ? (
+              <div>
+                <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md">
+                  <CardContent className="p-6">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                      Request Custom Product
+                    </h3>
+                    <p className="text-gray-700 dark:text-slate-300 mb-6">
+                      Have something specific in mind? Request a customized product
+                      tailored to your needs. Fill out the form below and we'll get back to you soon.
+                    </p>
+                    <CustomProductForm sellerId={sellerId} user={user} />
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
+      <ProductDetailsDialog
+        open={openDetailsDialog}
+        setOpen={setOpenDetailsDialog}
+        productDetails={productDetails}
+      />
     </div>
   );
 };
