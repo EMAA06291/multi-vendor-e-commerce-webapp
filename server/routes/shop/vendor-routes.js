@@ -5,6 +5,7 @@ const {
   getVendorReviews,
   updateVendorProfile,
   getFeaturedVendors,
+  createCustomProductRequest,
 } = require("../../controllers/shop/vendor-controller");
 
 const router = express.Router();
@@ -23,6 +24,9 @@ router.put("/update/:sellerId", updateVendorProfile);
 
 // Get featured vendors
 router.get("/featured", getFeaturedVendors);
+
+// Create custom product request
+router.post("/custom-product/:sellerId", createCustomProductRequest);
 
 module.exports = router;
 

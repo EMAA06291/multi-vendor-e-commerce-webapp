@@ -31,12 +31,34 @@ function VendorDashboard() {
     cancelledOrders: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       fetchSellerInfo();
     }
   }, [user]);
+
+  const handleToggleCustomProducts = async () => {
+    if (!sellerInfo?._id) return;
+
+    try {
+      setIsUpdatingSettings(true);
+      const newValue = !sellerInfo.allowCustomProducts;
+      const response = await apiClient.put(
+        API_ENDPOINTS.SHOP.VENDOR.UPDATE(sellerInfo._id),
+        { allowCustomProducts: newValue }
+      );
+
+      if (response.data.success) {
+        setSellerInfo(response.data.vendor);
+      }
+    } catch (error) {
+      console.error("Error updating settings:", error);
+    } finally {
+      setIsUpdatingSettings(false);
+    }
+  };
 
   const fetchSellerInfo = async () => {
     try {
@@ -341,7 +363,7 @@ function VendorDashboard() {
         <Card className="rounded-[28px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Store Information
+              Store Settings
             </h2>
             <div className="space-y-4">
               <div>
@@ -372,6 +394,27 @@ function VendorDashboard() {
                 <Badge className="bg-gradient-to-r from-emerald-500 to-lime-500 text-white px-4 py-1 rounded-full">
                   Active
                 </Badge>
+              </div>
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                      Allow Custom Products
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Enable customers to request customized products
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={sellerInfo.allowCustomProducts || false}
+                      onChange={handleToggleCustomProducts}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#3785D8]/20 dark:peer-focus:ring-[#3785D8]/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gradient-to-r peer-checked:from-[#3785D8] peer-checked:to-[#BF8CE1]"></div>
+                  </label>
+                </div>
               </div>
               <Button
                 onClick={() => navigate("/vendor/products")}

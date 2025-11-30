@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { useToast } from "@/components/ui/use-toast";
-import { Edit2, Save, X, Star } from "lucide-react";
+import { Edit2, Save, X, Star, Sparkles } from "lucide-react";
 
 const VendorProfilePage = () => {
   const { sellerId } = useParams();
@@ -190,6 +190,161 @@ const VendorProfilePage = () => {
 
   const handleAddtoCart = (productId, stock) => {
     console.log("Add to cart:", productId, stock);
+  };
+
+  // Custom Product Form Component
+  const CustomProductForm = ({ sellerId, user }) => {
+    const [formData, setFormData] = useState({
+      productDescription: "",
+      quantity: 1,
+      specialRequirements: "",
+      estimatedBudget: "",
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!user) {
+        toast({
+          title: "Please login",
+          description: "You need to be logged in to request custom products",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        const response = await apiClient.post(
+          API_ENDPOINTS.SHOP.VENDOR.CUSTOM_PRODUCT(sellerId),
+          {
+            userId: user.id || user._id,
+            userName: user.userName || "User",
+            userEmail: user.email || "",
+            productDescription: formData.productDescription,
+            quantity: parseInt(formData.quantity) || 1,
+            specialRequirements: formData.specialRequirements,
+            estimatedBudget: formData.estimatedBudget
+              ? parseFloat(formData.estimatedBudget)
+              : null,
+          }
+        );
+
+        if (response.data.success) {
+          toast({
+            title: "Success",
+            description: "Your custom product request has been submitted!",
+          });
+          setFormData({
+            productDescription: "",
+            quantity: 1,
+            specialRequirements: "",
+            estimatedBudget: "",
+          });
+        }
+      } catch (error) {
+        console.error("Error submitting custom product request:", error);
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.message ||
+            "Failed to submit custom product request",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="productDescription" className="text-white mb-2 block">
+            Product Description *
+          </Label>
+          <Textarea
+            id="productDescription"
+            value={formData.productDescription}
+            onChange={(e) =>
+              setFormData({ ...formData, productDescription: e.target.value })
+            }
+            rows={4}
+            required
+            className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+            placeholder="Describe the custom product you'd like..."
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="quantity" className="text-white mb-2 block">
+              Quantity
+            </Label>
+            <Input
+              id="quantity"
+              type="number"
+              min="1"
+              value={formData.quantity}
+              onChange={(e) =>
+                setFormData({ ...formData, quantity: e.target.value })
+              }
+              className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+            />
+          </div>
+          <div>
+            <Label htmlFor="estimatedBudget" className="text-white mb-2 block">
+              Estimated Budget ($)
+            </Label>
+            <Input
+              id="estimatedBudget"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.estimatedBudget}
+              onChange={(e) =>
+                setFormData({ ...formData, estimatedBudget: e.target.value })
+              }
+              className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label
+            htmlFor="specialRequirements"
+            className="text-white mb-2 block"
+          >
+            Special Requirements
+          </Label>
+          <Textarea
+            id="specialRequirements"
+            value={formData.specialRequirements}
+            onChange={(e) =>
+              setFormData({ ...formData, specialRequirements: e.target.value })
+            }
+            rows={3}
+            className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+            placeholder="Any specific requirements, materials, colors, sizes, etc..."
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={isSubmitting || !formData.productDescription.trim()}
+          className="w-full bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90 text-white"
+        >
+          {isSubmitting ? (
+            "Submitting..."
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Submit Custom Product Request
+            </>
+          )}
+        </Button>
+      </form>
+    );
   };
 
   if (loading) {
@@ -415,6 +570,24 @@ const VendorProfilePage = () => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Custom Products Section - Only show if enabled */}
+          {vendor.allowCustomProducts && (
+            <div className="mt-8">
+              <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+                <CardContent className="p-6">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    Request Custom Product
+                  </h3>
+                  <p className="text-white/80 mb-6">
+                    Have something specific in mind? Request a customized product
+                    tailored to your needs.
+                  </p>
+                  <CustomProductForm sellerId={sellerId} user={user} />
+                </CardContent>
+              </Card>
             </div>
           )}
 

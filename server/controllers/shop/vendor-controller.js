@@ -2,6 +2,7 @@ const Seller = require("../../models/Seller");
 const Product = require("../../models/Product");
 const ProductReview = require("../../models/Review");
 const User = require("../../models/User");
+const CustomProductRequest = require("../../models/CustomProductRequest");
 const mongoose = require("mongoose");
 
 // Get vendor profile by sellerId
@@ -111,7 +112,7 @@ const getVendorReviews = async (req, res) => {
 const updateVendorProfile = async (req, res) => {
   try {
     const { sellerId } = req.params;
-    const { storeName, description, profilePic, backgroundImage } = req.body;
+    const { storeName, description, profilePic, backgroundImage, allowCustomProducts } = req.body;
 
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(sellerId)) {
@@ -142,6 +143,9 @@ const updateVendorProfile = async (req, res) => {
     }
     if (backgroundImage !== undefined) {
       seller.backgroundImage = backgroundImage;
+    }
+    if (allowCustomProducts !== undefined) {
+      seller.allowCustomProducts = allowCustomProducts;
     }
 
     await seller.save();
@@ -184,11 +188,72 @@ const getFeaturedVendors = async (req, res) => {
   }
 };
 
+// Create custom product request
+const createCustomProductRequest = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const { userId, userName, userEmail, productDescription, quantity, specialRequirements, estimatedBudget } = req.body;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vendor ID format",
+      });
+    }
+
+    // Check if vendor allows custom products
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    if (!seller.allowCustomProducts) {
+      return res.status(403).json({
+        success: false,
+        message: "This vendor does not accept custom product requests",
+      });
+    }
+
+    // Create custom product request
+    const customRequest = new CustomProductRequest({
+      sellerId,
+      userId,
+      userName,
+      userEmail,
+      productDescription,
+      quantity: quantity || 1,
+      specialRequirements: specialRequirements || "",
+      estimatedBudget: estimatedBudget || null,
+      status: "pending",
+    });
+
+    await customRequest.save();
+
+    res.json({
+      success: true,
+      message: "Custom product request submitted successfully",
+      request: customRequest,
+    });
+  } catch (error) {
+    console.error("Error creating custom product request:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating custom product request",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getVendorProfile,
   getVendorProducts,
   getVendorReviews,
   updateVendorProfile,
   getFeaturedVendors,
+  createCustomProductRequest,
 };
 

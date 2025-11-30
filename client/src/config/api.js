@@ -134,6 +134,7 @@ export const API_ENDPOINTS = {
       REVIEWS: (sellerId) => `/api/vendor/reviews/${sellerId}`,
       UPDATE: (sellerId) => `/api/vendor/update/${sellerId}`,
       FEATURED: "/api/vendor/featured",
+      CUSTOM_PRODUCT: (sellerId) => `/api/vendor/custom-product/${sellerId}`,
     },
     BLOG: {
       GET: "/api/blog/get",
