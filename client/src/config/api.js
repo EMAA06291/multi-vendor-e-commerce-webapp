@@ -135,6 +135,9 @@ export const API_ENDPOINTS = {
       UPDATE: (sellerId) => `/api/vendor/update/${sellerId}`,
       FEATURED: "/api/vendor/featured",
       CUSTOM_PRODUCT: (sellerId) => `/api/vendor/custom-product/${sellerId}`,
+      CUSTOM_PRODUCT_REQUESTS: (sellerId) => `/api/vendor/custom-product-requests/${sellerId}`,
+      ACCEPT_CUSTOM_REQUEST: (requestId) => `/api/vendor/custom-product-request/accept/${requestId}`,
+      REJECT_CUSTOM_REQUEST: (requestId) => `/api/vendor/custom-product-request/reject/${requestId}`,
     },
     BLOG: {
       GET: "/api/blog/get",

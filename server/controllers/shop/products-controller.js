@@ -40,6 +40,8 @@ const getFilteredProducts = async (req, res) => {
         break;
     }
 
+    // Exclude custom products from public listings
+    filters.isCustomProduct = { $ne: true };
     const products = await Product.find(filters).sort(sort);
 
     res.status(200).json({
@@ -83,8 +85,10 @@ const getProductDetails = async (req, res) => {
 const getProductsWithOffers = async (req, res) => {
   try {
     const { limit = 10 } = req.query;
+    // Exclude custom products from public listings
     const products = await Product.find({
       salePrice: { $gt: 0 },
+      isCustomProduct: { $ne: true },
     })
       .sort({ createdAt: -1 })
       .limit(parseInt(limit));
@@ -107,7 +111,10 @@ const getProductsWithOffers = async (req, res) => {
 const getLatestProducts = async (req, res) => {
   try {
     const { limit = 8 } = req.query;
-    const products = await Product.find({})
+    // Exclude custom products from public listings
+    const products = await Product.find({
+      isCustomProduct: { $ne: true },
+    })
       .sort({ createdAt: -1 })
       .limit(parseInt(limit));
 

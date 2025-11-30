@@ -19,6 +19,7 @@ const searchProducts = async (req, res) => {
         { category: regEx },
         { brand: regEx },
       ],
+      isCustomProduct: { $ne: true }, // Exclude custom products from search
     };
 
     const searchResults = await Product.find(createSearchQuery);

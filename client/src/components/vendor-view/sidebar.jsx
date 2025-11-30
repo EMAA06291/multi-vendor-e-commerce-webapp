@@ -3,6 +3,7 @@ import {
   ShoppingBasket,
   Package,
   Heart,
+  Sparkles,
 } from "lucide-react";
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -26,6 +27,12 @@ const vendorSidebarMenuItems = [
     label: "Orders",
     path: "/vendor/orders",
     icon: <Package className="w-5 h-5" />,
+  },
+  {
+    id: "custom-requests",
+    label: "Custom Requests",
+    path: "/vendor/custom-requests",
+    icon: <Sparkles className="w-5 h-5" />,
   },
 ];
 

@@ -6,6 +6,9 @@ const {
   updateVendorProfile,
   getFeaturedVendors,
   createCustomProductRequest,
+  getCustomProductRequests,
+  acceptCustomProductRequest,
+  rejectCustomProductRequest,
 } = require("../../controllers/shop/vendor-controller");
 
 const router = express.Router();
@@ -27,6 +30,15 @@ router.get("/featured", getFeaturedVendors);
 
 // Create custom product request
 router.post("/custom-product/:sellerId", createCustomProductRequest);
+
+// Get custom product requests for a vendor
+router.get("/custom-product-requests/:sellerId", getCustomProductRequests);
+
+// Accept custom product request
+router.post("/custom-product-request/accept/:requestId", acceptCustomProductRequest);
+
+// Reject custom product request
+router.post("/custom-product-request/reject/:requestId", rejectCustomProductRequest);
 
 module.exports = router;
 

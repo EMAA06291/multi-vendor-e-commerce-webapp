@@ -16,6 +16,19 @@ const ProductSchema = new mongoose.Schema(
       ref: "Seller",
       default: null,
     },
+    isCustomProduct: {
+      type: Boolean,
+      default: false,
+    },
+    customProductUserId: {
+      type: String,
+      default: null,
+    },
+    customProductRequestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CustomProductRequest",
+      default: null,
+    },
   },
   { timestamps: true }
 );

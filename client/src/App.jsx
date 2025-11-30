@@ -32,6 +32,7 @@ import VendorLayout from "./components/vendor-view/layout";
 import VendorDashboard from "./pages/vendor-view/dashboard";
 import VendorProducts from "./pages/vendor-view/products";
 import VendorOrders from "./pages/vendor-view/orders";
+import VendorCustomRequests from "./pages/vendor-view/custom-requests";
 import AdminVendors from "./pages/admin-view/vendors";
 
 function App() {
@@ -110,6 +111,7 @@ function App() {
           <Route path="dashboard" element={<VendorDashboard />} />
           <Route path="products" element={<VendorProducts />} />
           <Route path="orders" element={<VendorOrders />} />
+          <Route path="custom-requests" element={<VendorCustomRequests />} />
         </Route>
         <Route
           path="/shop"

@@ -3,6 +3,7 @@ const Product = require("../../models/Product");
 const ProductReview = require("../../models/Review");
 const User = require("../../models/User");
 const CustomProductRequest = require("../../models/CustomProductRequest");
+const Cart = require("../../models/Cart");
 const mongoose = require("mongoose");
 
 // Get vendor profile by sellerId
@@ -42,7 +43,7 @@ const getVendorProfile = async (req, res) => {
   }
 };
 
-// Get vendor products by sellerId
+// Get vendor products by sellerId (exclude custom products)
 const getVendorProducts = async (req, res) => {
   try {
     const { sellerId } = req.params;
@@ -55,7 +56,11 @@ const getVendorProducts = async (req, res) => {
       });
     }
 
-    const products = await Product.find({ sellerId })
+    // Exclude custom products from public vendor profile
+    const products = await Product.find({ 
+      sellerId,
+      isCustomProduct: { $ne: true }
+    })
       .sort({ createdAt: -1 });
 
     res.json({
@@ -248,6 +253,176 @@ const createCustomProductRequest = async (req, res) => {
   }
 };
 
+// Get custom product requests for a vendor
+const getCustomProductRequests = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vendor ID format",
+      });
+    }
+
+    const requests = await CustomProductRequest.find({ sellerId })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      requests,
+    });
+  } catch (error) {
+    console.error("Error fetching custom product requests:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching custom product requests",
+      error: error.message,
+    });
+  }
+};
+
+// Accept custom product request
+const acceptCustomProductRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { price, title, description, image } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request ID format",
+      });
+    }
+
+    const request = await CustomProductRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Custom product request not found",
+      });
+    }
+
+    if (request.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Request has already been processed",
+      });
+    }
+
+    // Create custom product (only visible to the requesting user)
+    const customProduct = new Product({
+      sellerId: request.sellerId,
+      title: title || `Custom Product - ${request.productDescription.substring(0, 50)}`,
+      description: description || request.productDescription,
+      image: image || "",
+      category: "Custom",
+      brand: "Custom",
+      price: price || request.estimatedBudget || 0,
+      salePrice: 0,
+      totalStock: request.quantity || 1,
+      averageReview: 0,
+      isCustomProduct: true,
+      customProductUserId: request.userId,
+      customProductRequestId: requestId,
+    });
+
+    await customProduct.save();
+
+    // Add product to user's cart
+    // Convert userId to ObjectId if it's a string
+    const userIdObjectId = mongoose.Types.ObjectId.isValid(request.userId)
+      ? new mongoose.Types.ObjectId(request.userId)
+      : request.userId;
+
+    let cart = await Cart.findOne({ userId: userIdObjectId });
+    if (!cart) {
+      cart = new Cart({ userId: userIdObjectId, items: [] });
+    }
+
+    const findProductIndex = cart.items.findIndex(
+      (item) => item.productId.toString() === customProduct._id.toString()
+    );
+
+    if (findProductIndex === -1) {
+      cart.items.push({ 
+        productId: customProduct._id, 
+        quantity: request.quantity || 1 
+      });
+    } else {
+      cart.items[findProductIndex].quantity += (request.quantity || 1);
+    }
+
+    await cart.save();
+
+    // Update request status
+    request.status = "accepted";
+    request.vendorResponse = `Custom product created and added to your cart. Price: $${price || request.estimatedBudget || 0}`;
+    await request.save();
+
+    res.json({
+      success: true,
+      message: "Custom product request accepted and product added to user's cart",
+      product: customProduct,
+      request,
+    });
+  } catch (error) {
+    console.error("Error accepting custom product request:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error accepting custom product request",
+      error: error.message,
+    });
+  }
+};
+
+// Reject custom product request
+const rejectCustomProductRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { vendorResponse } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request ID format",
+      });
+    }
+
+    const request = await CustomProductRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Custom product request not found",
+      });
+    }
+
+    if (request.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Request has already been processed",
+      });
+    }
+
+    request.status = "rejected";
+    request.vendorResponse = vendorResponse || "Request rejected";
+    await request.save();
+
+    res.json({
+      success: true,
+      message: "Custom product request rejected",
+      request,
+    });
+  } catch (error) {
+    console.error("Error rejecting custom product request:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting custom product request",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getVendorProfile,
   getVendorProducts,
@@ -255,5 +430,8 @@ module.exports = {
   updateVendorProfile,
   getFeaturedVendors,
   createCustomProductRequest,
+  getCustomProductRequests,
+  acceptCustomProductRequest,
+  rejectCustomProductRequest,
 };
 
