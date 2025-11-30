@@ -11,7 +11,7 @@ const ShopProductCard = ({ product, onAdd, onViewDetails }) => {
   const brandLabel = product.brand ? (brandOptionsMap[product.brand] || product.brand) : null;
 
   return (
-    <div className="shop-product-card">
+    <div className="shop-product-card dark:bg-[#1E293B] dark:text-white">
       <div className="shop-product-img-box" onClick={() => onViewDetails && onViewDetails(product._id)}>
         <img
           src={product.image || "https://via.placeholder.com/300x180?text=No+Image"}
@@ -21,17 +21,17 @@ const ShopProductCard = ({ product, onAdd, onViewDetails }) => {
       </div>
 
       <div>
-        <h3 className="shop-product-name" onClick={() => onViewDetails && onViewDetails(product._id)}>
+        <h3 className="shop-product-name dark:text-white" onClick={() => onViewDetails && onViewDetails(product._id)}>
           {product.title}
         </h3>
-        <div className="shop-product-rating">
+        <div className="shop-product-rating dark:text-gray-300">
           <Star className="shop-star-icon" fill="#f5c518" color="#f5c518" size={14} />
-          {rating.toFixed(1)} <span style={{ color: "#888" }}>({reviews})</span>
+          {rating.toFixed(1)} <span className="dark:text-gray-400">({reviews})</span>
         </div>
-        <div className="shop-product-price">
+        <div className="shop-product-price dark:text-white">
           ${displayPrice.toFixed(2)}
           {originalPrice && (
-            <span className="shop-original-price"> ${originalPrice.toFixed(2)}</span>
+            <span className="shop-original-price dark:text-gray-400"> ${originalPrice.toFixed(2)}</span>
           )}
         </div>
 

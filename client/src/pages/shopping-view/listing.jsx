@@ -253,7 +253,8 @@ function ShoppingListing() {
   console.log(productList, "productListproductListproductList");
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
+    <div className="min-h-screen bg-[#EAF2FB] dark:bg-[#0F172A]">
+      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
       <ProductFilter
         filters={filters}
         handleFilter={handleFilter}
@@ -362,6 +363,7 @@ function ShoppingListing() {
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
       />
+      </div>
     </div>
   );
 }
