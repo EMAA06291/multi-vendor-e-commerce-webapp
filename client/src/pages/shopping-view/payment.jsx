@@ -5,12 +5,20 @@ import UserCartItemsContent from "@/components/shopping-view/cart-items-content"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createNewOrder } from "@/store/shop/order-slice";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { FaPaypal, FaMoneyBillAlt } from "react-icons/fa";
 import { CreditCard, ShoppingBag, MapPin, CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  calculateDiscountForAmount,
+  saveCurrentSessionCoupon,
+  clearCurrentSessionCoupon,
+  validateCoupon,
+  getAvailableCoupons,
+} from "@/lib/coupon-utils";
 
 function PaymentPage() {
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -22,8 +30,11 @@ function PaymentPage() {
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("paypal");
   const [isPaymentStart, setIsPaymentStart] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [couponError, setCouponError] = useState(null);
 
-  const totalCartAmount =
+  const subtotalAmount =
     cartItems && cartItems.items && cartItems.items.length > 0
       ? cartItems.items.reduce(
           (sum, currentItem) =>
@@ -35,6 +46,88 @@ function PaymentPage() {
           0
         )
       : 0;
+
+  // Generate available discount coupon for current cart
+  const availableDiscount = calculateDiscountForAmount(subtotalAmount);
+
+  // Save session coupon when cart qualifies for discount
+  useEffect(() => {
+    if (availableDiscount.percentage > 0 && cartItems?._id) {
+      saveCurrentSessionCoupon(cartItems._id, availableDiscount);
+    } else if (availableDiscount.percentage === 0 && cartItems?._id) {
+      clearCurrentSessionCoupon(cartItems._id);
+    }
+  }, [subtotalAmount, cartItems?._id, availableDiscount]);
+
+  // Set coupon code in input field if discount is available and not already applied
+  useEffect(() => {
+    if (availableDiscount.percentage > 0 && !appliedDiscount && !couponCode) {
+      setCouponCode(availableDiscount.code);
+    } else if (availableDiscount.percentage === 0 && !appliedDiscount) {
+      // Check for available coupons from completed purchases
+      const savedCoupons = user?.id ? getAvailableCoupons(user.id) : [];
+      if (savedCoupons.length > 0) {
+        // Show the most recent coupon
+        const recentCoupon = savedCoupons[savedCoupons.length - 1];
+        setCouponCode(recentCoupon.code);
+      }
+    }
+  }, [subtotalAmount, appliedDiscount, couponCode, availableDiscount, user?.id]);
+
+  const handleApplyCoupon = () => {
+    setCouponError(null);
+    
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    if (!user?.id) {
+      setCouponError("Please login to use coupons");
+      return;
+    }
+
+    // Validate coupon using the utility
+    const validation = validateCoupon(
+      couponCode,
+      user.id,
+      cartItems?._id,
+      subtotalAmount
+    );
+
+    if (validation.valid) {
+      setAppliedDiscount(validation.couponData);
+      setCouponError(null);
+    } else {
+      setCouponError(validation.reason);
+      setAppliedDiscount(null);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedDiscount(null);
+    setCouponError(null);
+    // Reset to current session coupon or available coupon
+    if (availableDiscount.percentage > 0) {
+      setCouponCode(availableDiscount.code);
+    } else {
+      const savedCoupons = user?.id ? getAvailableCoupons(user.id) : [];
+      if (savedCoupons.length > 0) {
+        setCouponCode(savedCoupons[savedCoupons.length - 1].code);
+      } else {
+        setCouponCode("");
+      }
+    }
+  };
+
+  // Clear error when coupon code changes
+  useEffect(() => {
+    if (couponCode && couponError) {
+      setCouponError(null);
+    }
+  }, [couponCode]);
+
+  const totalCartAmount = subtotalAmount - (appliedDiscount?.amount || 0);
 
   function handleInitiatePayment() {
     if (!cartItems?.items?.length) {
@@ -81,17 +174,46 @@ function PaymentPage() {
       orderUpdateDate: new Date(),
       paymentId: "",
       payerId: "",
+      discount: appliedDiscount ? {
+        percentage: appliedDiscount.percentage,
+        amount: appliedDiscount.amount,
+        code: appliedDiscount.code,
+      } : null,
     };
 
     setIsPaymentStart(true);
     dispatch(createNewOrder(orderData)).then((data) => {
       if (data?.payload?.success) {
+        // Mark coupon as used after successful order creation
+        if (appliedDiscount && user?.id) {
+          import("@/lib/coupon-utils").then(({ markCouponAsUsed }) => {
+            markCouponAsUsed(user.id, appliedDiscount.code, data?.payload?.orderId);
+          });
+        }
         if (paymentMethod === "paypal" && data?.payload?.approvalURL) {
+          // Store coupon info for PayPal return flow
+          if (availableDiscount.percentage > 0) {
+            sessionStorage.setItem("pendingCoupon", JSON.stringify({
+              ...availableDiscount,
+              orderId: data?.payload?.orderId,
+            }));
+          }
           window.location.href = data.payload.approvalURL;
         } else {
-          // COD order - navigate to success page
+          // COD order - save coupon and navigate to success page
+          if (availableDiscount.percentage > 0 && user?.id) {
+            import("@/lib/coupon-utils").then(({ saveCouponFromPurchase }) => {
+              saveCouponFromPurchase(user.id, {
+                ...availableDiscount,
+                orderId: data?.payload?.orderId,
+              });
+            });
+          }
           navigate("/shop/payment-success", {
-            state: { orderDetails: { ...orderData, _id: data?.payload?.orderId } },
+            state: { 
+              orderDetails: { ...orderData, _id: data?.payload?.orderId },
+              generatedCoupon: availableDiscount.percentage > 0 ? availableDiscount : null,
+            },
           });
         }
       } else {
@@ -185,6 +307,67 @@ function PaymentPage() {
                       </div>
                     )}
                   </div>
+                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-slate-400">Subtotal</span>
+                      <span className="text-gray-900 dark:text-white">${subtotalAmount.toFixed(2)}</span>
+                    </div>
+                    {appliedDiscount && (
+                      <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400">
+                        <span className="font-medium">Discount ({appliedDiscount.percentage}%)</span>
+                        <span className="font-semibold">-${appliedDiscount.amount.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Coupon Section */}
+                  {availableDiscount.percentage > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Coupon Code"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleApplyCoupon();
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        {appliedDiscount ? (
+                          <Button
+                            onClick={handleRemoveCoupon}
+                            variant="outline"
+                            className="border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          >
+                            Remove
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={handleApplyCoupon}
+                            className="bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] hover:opacity-90 text-white"
+                          >
+                            Apply
+                          </Button>
+                        )}
+                      </div>
+                      {/* Show success message or error message */}
+                      {appliedDiscount ? (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                          ✓ Coupon applied! You saved {appliedDiscount.percentage}% on your order
+                        </p>
+                      ) : couponError ? (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                          ⚠ {couponError}
+                        </p>
+                      ) : availableDiscount.percentage > 0 ? (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                          💰 You're eligible for a {availableDiscount.percentage}% discount! Use code: <strong>{availableDiscount.code}</strong>
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -269,11 +452,19 @@ function PaymentPage() {
 
                   {/* Total Amount */}
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Amount</span>
-                      <span className="text-3xl font-bold bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-transparent bg-clip-text">
-                        ${totalCartAmount.toFixed(2)}
-                      </span>
+                    <div className="space-y-2 mb-4">
+                      {appliedDiscount && (
+                        <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                          <span className="text-sm font-medium">You saved ({appliedDiscount.percentage}% off)</span>
+                          <span className="text-sm font-semibold">-${appliedDiscount.amount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Amount</span>
+                        <span className="text-3xl font-bold bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-transparent bg-clip-text">
+                          ${totalCartAmount.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                     <Button
                       onClick={handleInitiatePayment}

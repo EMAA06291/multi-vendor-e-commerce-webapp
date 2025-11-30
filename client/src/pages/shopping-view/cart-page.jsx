@@ -1,8 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { deleteCartItem, updateCartQuantity, fetchCartItems } from "@/store/shop/cart-slice";
+import {
+  calculateDiscountForAmount,
+  saveCurrentSessionCoupon,
+  clearCurrentSessionCoupon,
+  validateCoupon,
+  getAvailableCoupons,
+} from "@/lib/coupon-utils";
 import "@/styles/cart.css";
 
 const CartPage = () => {
@@ -12,6 +19,9 @@ const CartPage = () => {
   const navigate = useNavigate();
 
   const items = cartItems?.items || [];
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [couponError, setCouponError] = useState(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -55,9 +65,89 @@ const CartPage = () => {
     const price = item.salePrice && item.salePrice > 0 ? item.salePrice : (item.price || 0);
     return acc + price * (item.quantity || 0);
   }, 0);
-  
+
+  // Generate available discount coupon for current cart
+  const availableDiscount = calculateDiscountForAmount(subtotal);
+
+  // Save session coupon when cart qualifies for discount
+  useEffect(() => {
+    if (availableDiscount.percentage > 0 && cartItems?._id) {
+      saveCurrentSessionCoupon(cartItems._id, availableDiscount);
+    } else if (availableDiscount.percentage === 0 && cartItems?._id) {
+      clearCurrentSessionCoupon(cartItems._id);
+    }
+  }, [subtotal, cartItems?._id, availableDiscount]);
+
+  // Set coupon code in input field if discount is available and not already applied
+  useEffect(() => {
+    if (availableDiscount.percentage > 0 && !appliedDiscount && !couponCode) {
+      setCouponCode(availableDiscount.code);
+    } else if (availableDiscount.percentage === 0 && !appliedDiscount) {
+      // Check for available coupons from completed purchases
+      const savedCoupons = user?.id ? getAvailableCoupons(user.id) : [];
+      if (savedCoupons.length > 0) {
+        // Show the most recent coupon
+        const recentCoupon = savedCoupons[savedCoupons.length - 1];
+        setCouponCode(recentCoupon.code);
+      }
+    }
+  }, [subtotal, appliedDiscount, couponCode, availableDiscount, user?.id]);
+
+  const handleApplyCoupon = () => {
+    setCouponError(null);
+    
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    if (!user?.id) {
+      setCouponError("Please login to use coupons");
+      return;
+    }
+
+    // Validate coupon using the utility
+    const validation = validateCoupon(
+      couponCode,
+      user.id,
+      cartItems?._id,
+      subtotal
+    );
+
+    if (validation.valid) {
+      setAppliedDiscount(validation.couponData);
+      setCouponError(null);
+    } else {
+      setCouponError(validation.reason);
+      setAppliedDiscount(null);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedDiscount(null);
+    setCouponError(null);
+    // Reset to current session coupon or available coupon
+    if (availableDiscount.percentage > 0) {
+      setCouponCode(availableDiscount.code);
+    } else {
+      const savedCoupons = user?.id ? getAvailableCoupons(user.id) : [];
+      if (savedCoupons.length > 0) {
+        setCouponCode(savedCoupons[savedCoupons.length - 1].code);
+      } else {
+        setCouponCode("");
+      }
+    }
+  };
+
+  // Clear error when coupon code changes
+  useEffect(() => {
+    if (couponCode && couponError) {
+      setCouponError(null);
+    }
+  }, [couponCode]);
+
   const taxes = items.length > 0 ? 10 : 0;
-  const total = subtotal + taxes;
+  const total = subtotal - (appliedDiscount?.amount || 0) + taxes;
 
   if (items.length === 0) {
     return (
@@ -127,6 +217,12 @@ const CartPage = () => {
             <span>Subtotal</span>
             <span>${subtotal.toFixed(2)}</span>
           </div>
+          {appliedDiscount && (
+            <div className="summary-line" style={{ color: "#16a34a", fontWeight: "600" }}>
+              <span>Discount ({appliedDiscount.percentage}%)</span>
+              <span>-${appliedDiscount.amount.toFixed(2)}</span>
+            </div>
+          )}
           <div className="summary-line">
             <span>Estimated Delivery</span>
             <span>Free</span>
@@ -140,9 +236,63 @@ const CartPage = () => {
             <span>${total.toFixed(2)}</span>
           </div>
           <div className="coupon">
-            <input type="text" placeholder="Coupon Code" />
-            <button>Apply Coupon</button>
+            <input 
+              type="text" 
+              placeholder="Coupon Code" 
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleApplyCoupon();
+                }
+              }}
+            />
+            {appliedDiscount ? (
+              <button onClick={handleRemoveCoupon} style={{ background: "#dc2626" }}>
+                Remove Coupon
+              </button>
+            ) : (
+              <button onClick={handleApplyCoupon}>Apply Coupon</button>
+            )}
           </div>
+          {/* Show success message or error message */}
+          {appliedDiscount ? (
+            <div style={{ 
+              marginTop: "8px", 
+              padding: "8px", 
+              background: "#f0fdf4", 
+              border: "1px solid #16a34a", 
+              borderRadius: "4px",
+              fontSize: "12px",
+              color: "#16a34a"
+            }}>
+              ✓ Coupon applied! You saved {appliedDiscount.percentage}% on your order
+            </div>
+          ) : couponError ? (
+            <div style={{ 
+              marginTop: "8px", 
+              padding: "8px", 
+              background: "#fef2f2", 
+              border: "1px solid #dc2626", 
+              borderRadius: "4px",
+              fontSize: "12px",
+              color: "#dc2626"
+            }}>
+              ⚠ {couponError}
+            </div>
+          ) : availableDiscount.percentage > 0 ? (
+            <div style={{ 
+              marginTop: "8px", 
+              padding: "8px", 
+              background: "#f0fdf4", 
+              border: "1px solid #16a34a", 
+              borderRadius: "4px",
+              fontSize: "12px",
+              color: "#16a34a"
+            }}>
+              💰 You're eligible for a {availableDiscount.percentage}% discount! Use coupon code: <strong>{availableDiscount.code}</strong>
+            </div>
+          ) : null}
           <button
             onClick={() => navigate("/shop/payment")}
             className="w-full mt-4 py-3 rounded-lg font-semibold text-white hover:opacity-90 transition-all"

@@ -3,12 +3,61 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CheckCircle2, ShoppingBag, MapPin, CreditCard, Package, ArrowRight } from "lucide-react";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { saveCouponFromPurchase, calculateDiscountForAmount } from "@/lib/coupon-utils";
 import accImg from "../../assets/account.jpg";
 
 function PaymentSuccessPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const orderDetails = location.state?.orderDetails;
+  const generatedCoupon = location.state?.generatedCoupon;
+  const { user } = useSelector((state) => state.auth);
+
+  // Save coupon when order is completed
+  useEffect(() => {
+    if (orderDetails?._id && user?.id) {
+      // Check for pending coupon from PayPal flow
+      const pendingCouponStr = sessionStorage.getItem("pendingCoupon");
+      let couponToSave = generatedCoupon;
+
+      if (pendingCouponStr) {
+        try {
+          const pendingCoupon = JSON.parse(pendingCouponStr);
+          if (pendingCoupon.orderId === orderDetails._id) {
+            couponToSave = pendingCoupon;
+            sessionStorage.removeItem("pendingCoupon");
+          }
+        } catch (e) {
+          console.error("Error parsing pending coupon:", e);
+        }
+      }
+
+      // Calculate the original subtotal to determine if a coupon should be generated
+      const originalSubtotal = orderDetails?.cartItems?.reduce(
+        (sum, item) => sum + (item.price * item.quantity),
+        0
+      ) || 0;
+
+      // If there was a generated coupon from the purchase, save it
+      if (couponToSave && couponToSave.percentage > 0) {
+        saveCouponFromPurchase(user.id, {
+          ...couponToSave,
+          orderId: orderDetails._id,
+        });
+      } else if (originalSubtotal >= 200) {
+        // If no coupon was passed but the order qualifies, generate and save one
+        const discount = calculateDiscountForAmount(originalSubtotal);
+        if (discount.percentage > 0) {
+          saveCouponFromPurchase(user.id, {
+            ...discount,
+            orderId: orderDetails._id,
+          });
+        }
+      }
+    }
+  }, [orderDetails, user?.id, generatedCoupon]);
 
   const paymentMethodLabel =
     orderDetails?.paymentMethod === "cod"
@@ -176,7 +225,7 @@ function PaymentSuccessPage() {
                           </p>
                         </div>
                       </div>
-                    </CardHeader>
+      </CardHeader>
                     <CardContent className="p-6">
                       <div className="space-y-2 text-gray-900 dark:text-white">
                         <p className="font-medium">
