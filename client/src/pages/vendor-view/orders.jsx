@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import {
   Table,
@@ -147,11 +147,6 @@ function VendorOrders() {
       </div>
 
       <Card className="rounded-[28px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden">
-        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-700">
-          <CardTitle className="text-xl text-gray-900 dark:text-white">
-            All Orders
-          </CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           {orders.length === 0 ? (
             <div className="text-center py-12 px-6">

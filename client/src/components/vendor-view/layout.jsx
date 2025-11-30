@@ -1,6 +1,5 @@
 import { Outlet } from "react-router-dom";
 import VendorSideBar from "./sidebar";
-import VendorHeader from "./header";
 import ShoppingHeader from "../shopping-view/header";
 import ShoppingFooter from "../shopping-view/footer";
 import { useState } from "react";
@@ -14,19 +13,17 @@ function VendorLayout() {
       <div className="sticky top-0 z-50">
         <ShoppingHeader />
       </div>
-      
+
       <div className="flex flex-1">
         {/* vendor sidebar */}
         <VendorSideBar open={openSidebar} setOpen={setOpenSidebar} />
         <div className="flex flex-1 flex-col">
-          {/* vendor header */}
-          <VendorHeader setOpen={setOpenSidebar} />
-          <main className="flex-1 flex-col flex bg-muted/40 p-4 md:p-6">
+          <main className="flex-1 flex-col flex bg-[#EAF2FB] dark:bg-slate-900 p-4 md:p-6">
             <Outlet />
           </main>
         </div>
       </div>
-      
+
       {/* Footer */}
       <ShoppingFooter />
     </div>
@@ -34,5 +31,3 @@ function VendorLayout() {
 }
 
 export default VendorLayout;
-
-
