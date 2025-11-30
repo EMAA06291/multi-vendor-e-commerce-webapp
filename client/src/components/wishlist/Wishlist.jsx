@@ -210,7 +210,7 @@ const Wishlist = () => {
               const displayPrice = product.salePrice > 0 ? product.salePrice : product.price;
               const originalPrice = product.salePrice > 0 ? product.price : null;
               const rating = product.averageReview || 0;
-              const reviews = product.reviews || 0;
+              const reviews = product.reviews || product.reviewsCount || 0;
               const isRemoving = removingIds.has(product._id);
               const stockStatus = product.totalStock > 0 ? "In Stock" : "Out of Stock";
               const tags = product.category ? [product.category] : [];
