@@ -573,24 +573,6 @@ const VendorProfilePage = () => {
             </div>
           )}
 
-          {/* Custom Products Section - Only show if enabled */}
-          {vendor.allowCustomProducts && (
-            <div className="mt-8">
-              <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-                <CardContent className="p-6">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Request Custom Product
-                  </h3>
-                  <p className="text-white/80 mb-6">
-                    Have something specific in mind? Request a customized product
-                    tailored to your needs.
-                  </p>
-                  <CustomProductForm sellerId={sellerId} user={user} />
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
           {/* Tabs */}
           <div className="mt-8 flex gap-4 border-b border-white/20">
             <Button
@@ -615,6 +597,20 @@ const VendorProfilePage = () => {
             >
               Reviews ({reviews.length})
             </Button>
+            {vendor.allowCustomProducts && (
+              <Button
+                variant={activeTab === "custom" ? "default" : "ghost"}
+                onClick={() => setActiveTab("custom")}
+                className={`${
+                  activeTab === "custom"
+                    ? "bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-white"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Request Custom Product
+              </Button>
+            )}
           </div>
 
           {/* Content Section */}
@@ -690,7 +686,7 @@ const VendorProfilePage = () => {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === "reviews" ? (
               <div>
                 {reviews.length === 0 ? (
                   <div className="text-center py-12">
@@ -739,7 +735,22 @@ const VendorProfilePage = () => {
                   </div>
                 )}
               </div>
-            )}
+            ) : activeTab === "custom" && vendor.allowCustomProducts ? (
+              <div>
+                <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+                  <CardContent className="p-6">
+                    <h3 className="text-2xl font-bold text-white mb-4">
+                      Request Custom Product
+                    </h3>
+                    <p className="text-white/80 mb-6">
+                      Have something specific in mind? Request a customized product
+                      tailored to your needs. Fill out the form below and we'll get back to you soon.
+                    </p>
+                    <CustomProductForm sellerId={sellerId} user={user} />
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
