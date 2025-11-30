@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductImageUpload from "@/components/admin-view/image-upload";
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { useToast } from "@/components/ui/use-toast";
 import { Edit2, Save, X, Star, Sparkles } from "lucide-react";
+import { fetchProductDetails } from "@/store/shop/products-slice";
 
 const VendorProfilePage = () => {
   const { sellerId } = useParams();
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { productDetails } = useSelector((state) => state.shopProducts);
   const { toast } = useToast();
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
@@ -23,6 +27,7 @@ const VendorProfilePage = () => {
   const [error, setError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -185,8 +190,12 @@ const VendorProfilePage = () => {
   };
 
   const handleGetProductDetails = (productId) => {
-    window.location.href = `/shop/products/${productId}`;
+    dispatch(fetchProductDetails(productId));
   };
+
+  useEffect(() => {
+    if (productDetails !== null) setOpenDetailsDialog(true);
+  }, [productDetails]);
 
   const handleAddtoCart = (productId, stock) => {
     console.log("Add to cart:", productId, stock);
@@ -757,6 +766,11 @@ const VendorProfilePage = () => {
           </div>
         </div>
       </div>
+      <ProductDetailsDialog
+        open={openDetailsDialog}
+        setOpen={setOpenDetailsDialog}
+        productDetails={productDetails}
+      />
     </div>
   );
 };
