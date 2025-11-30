@@ -1,8 +1,8 @@
 import {
-  ChartNoAxesCombined,
   LayoutDashboard,
   ShoppingBasket,
   Store,
+  Heart,
 } from "lucide-react";
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -44,15 +44,15 @@ function MenuItems({ setOpen }) {
               navigate(menuItem.path);
               setOpen ? setOpen(false) : null;
             }}
-            className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all ${
+            className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
               isActive
-                ? "bg-white/20 text-white shadow-lg shadow-black/10"
-                : "text-white/70 hover:text-white hover:bg-white/10"
+                ? "bg-white text-[#1E0F75] shadow-md"
+                : "text-white/80 hover:text-white hover:bg-white/10"
             }`}
           >
             <span
-              className={`inline-flex rounded-xl p-2 ${
-                isActive ? "bg-white text-[#1E0F75]" : "bg-white/10"
+              className={`inline-flex rounded-lg p-2 ${
+                isActive ? "bg-[#1E0F75]/10 text-[#1E0F75]" : "bg-white/10 text-white"
               }`}
             >
               {menuItem.icon}
@@ -67,9 +67,11 @@ function MenuItems({ setOpen }) {
 
 function GradientAside({ children }) {
   return (
-    <aside className="hidden w-72 flex-col bg-gradient-to-b from-[#1E0F75] via-[#2a379a] to-[#3785D8] text-white p-6 lg:flex relative overflow-hidden">
-      <div className="absolute inset-3 rounded-[32px] border border-white/10 pointer-events-none"></div>
-      {children}
+    <aside className="hidden w-72 flex-col bg-gradient-to-br from-[#1E0F75] via-[#2f3fbd] to-[#3785D8] text-white p-6 lg:flex relative overflow-hidden shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1E0F75]/95 via-[#2f3fbd]/95 to-[#3785D8]/95"></div>
+      <div className="relative z-10 flex flex-col h-full">
+        {children}
+      </div>
     </aside>
   );
 }
@@ -82,19 +84,19 @@ function AdminSideBar({ open, setOpen }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="w-72 border-none bg-gradient-to-b from-[#1E0F75] via-[#2a379a] to-[#3785D8] text-white"
+          className="w-72 border-none bg-gradient-to-br from-[#1E0F75] via-[#2f3fbd] to-[#3785D8] text-white"
         >
           <div className="flex flex-col h-full">
-            <SheetHeader className="border-b border-white/10">
-              <SheetTitle className="flex gap-3 items-center py-4">
-                <span className="rounded-2xl bg-white/15 p-3">
-                  <ChartNoAxesCombined className="w-7 h-7 text-white" />
-                </span>
+            <SheetHeader className="border-b border-white/20 pb-4 mb-4">
+              <SheetTitle className="flex gap-3 items-center">
+                <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center shadow-lg">
+                  <Heart className="h-6 w-6 text-white" />
+                </div>
                 <div>
-                  <p className="text-base uppercase tracking-[0.3em] text-white/60">
+                  <p className="text-xs uppercase tracking-wider text-white/70">
                     Admin
                   </p>
-                  <h1 className="text-2xl font-extrabold">Control Center</h1>
+                  <h1 className="text-xl font-bold">Dashboard</h1>
                 </div>
               </SheetTitle>
             </SheetHeader>
@@ -105,26 +107,19 @@ function AdminSideBar({ open, setOpen }) {
       <GradientAside>
         <div
           onClick={() => navigate("/admin/dashboard")}
-          className="flex cursor-pointer items-center gap-3"
+          className="flex cursor-pointer items-center gap-3 mb-6 pb-4 border-b border-white/20"
         >
-          <span className="rounded-2xl bg-white/15 p-3">
-            <ChartNoAxesCombined className="w-7 h-7 text-white" />
-          </span>
+          <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center shadow-lg">
+            <Heart className="h-6 w-6 text-white" />
+          </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/60">
+            <p className="text-xs uppercase tracking-wider text-white/70">
               Admin
             </p>
-            <h1 className="text-xl font-bold">Control Center</h1>
+            <h1 className="text-lg font-bold">Dashboard</h1>
           </div>
         </div>
         <MenuItems />
-        <div className="mt-auto rounded-2xl bg-white/10 p-4 text-white/80 text-sm">
-          <p className="font-semibold">Need curation help?</p>
-          <p className="text-xs mt-2">
-            Keep imagery and layouts aligned with the Become Seller campaign for
-            a unified experience.
-          </p>
-        </div>
       </GradientAside>
     </Fragment>
   );
