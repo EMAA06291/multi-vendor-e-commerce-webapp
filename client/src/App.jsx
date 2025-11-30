@@ -27,6 +27,7 @@ import ContactPage from "./pages/shopping-view/contact";
 import CartPage from "./pages/shopping-view/cart-page";
 import PaymentPage from "./pages/shopping-view/payment";
 import Wishlist from "./components/wishlist/Wishlist";
+import VendorsPage from "./pages/shopping-view/vendors";
 import VendorLayout from "./components/vendor-view/layout";
 import VendorDashboard from "./pages/vendor-view/dashboard";
 import VendorProducts from "./pages/vendor-view/products";
@@ -132,6 +133,7 @@ function App() {
           <Route path="vendor/:sellerId" element={<VendorProfilePage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="wishlist" element={<Wishlist />} />
+          <Route path="vendors" element={<VendorsPage />} />
         </Route>
         <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
