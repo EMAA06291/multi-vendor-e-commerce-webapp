@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
       UPLOAD_IMAGE: "/api/admin/products/upload-image",
     },
     ORDERS: {
+      STATISTICS: "/api/admin/orders/statistics",
       GET: "/api/admin/orders/get",
       DETAILS: (id) => `/api/admin/orders/details/${id}`,
       UPDATE: (id) => `/api/admin/orders/update/${id}`,
