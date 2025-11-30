@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/User");
+const { imageUploadUtil } = require("../../helpers/cloudinary");
 
 //register
 const registerUser = async (req, res) => {
@@ -76,6 +77,7 @@ const loginUser = async (req, res) => {
         role: checkUser.role,
         id: checkUser._id,
         userName: checkUser.userName,
+        profilePic: checkUser.profilePic,
       },
     });
   } catch (e) {
@@ -117,4 +119,66 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, logoutUser, authMiddleware };
+//update user profile picture
+const updateProfilePicture = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { profilePicUrl } = req.body;
+
+    if (!profilePicUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture URL is required",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: profilePicUrl },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile picture updated successfully",
+      data: {
+        profilePic: user.profilePic,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating profile picture:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating profile picture",
+    });
+  }
+};
+
+//upload profile picture image
+const uploadProfilePicture = async (req, res) => {
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const url = "data:" + req.file.mimetype + ";base64," + b64;
+    const result = await imageUploadUtil(url);
+
+    res.json({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      success: false,
+      message: "Error occurred",
+    });
+  }
+};
+
+module.exports = { registerUser, loginUser, logoutUser, authMiddleware, updateProfilePicture, uploadProfilePicture };

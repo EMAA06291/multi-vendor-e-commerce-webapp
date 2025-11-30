@@ -51,6 +51,8 @@ export const API_ENDPOINTS = {
     LOGIN: "/api/auth/login",
     LOGOUT: "/api/auth/logout",
     CHECK_AUTH: "/api/auth/check-auth",
+    UPLOAD_PROFILE_PICTURE: "/api/auth/upload-profile-picture",
+    UPDATE_PROFILE_PICTURE: (userId) => `/api/auth/update-profile-picture/${userId}`,
   },
   // Admin endpoints
   ADMIN: {
