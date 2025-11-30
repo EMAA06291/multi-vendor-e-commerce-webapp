@@ -149,6 +149,10 @@ function ShoppingHeader() {
               <UserCog className="mr-2 h-4 w-4" />
               Account
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/shop/wishlist")}>
+              <Heart className="mr-2 h-4 w-4" />
+              Wishlist
+            </DropdownMenuItem>
             {(user?.role === "admin" || isVendor) && (
               <DropdownMenuItem
                 onClick={() =>

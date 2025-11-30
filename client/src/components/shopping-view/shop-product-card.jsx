@@ -1,6 +1,7 @@
 import React from "react";
 import { Star } from "lucide-react";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
+import WishlistButton from "@/components/common/wishlist-button";
 
 const ShopProductCard = ({ product, onAdd, onViewDetails }) => {
   const displayPrice = product.salePrice > 0 ? product.salePrice : product.price;
@@ -12,12 +13,19 @@ const ShopProductCard = ({ product, onAdd, onViewDetails }) => {
 
   return (
     <div className="shop-product-card border border-gray-300 dark:border-transparent p-4 rounded-lg dark:bg-[#1E293B] dark:text-white ">
-      <div className="shop-product-img-box" onClick={() => onViewDetails && onViewDetails(product._id)}>
+      <div className="shop-product-img-box relative" onClick={() => onViewDetails && onViewDetails(product._id)}>
         <img
           src={product.image || "https://via.placeholder.com/300x180?text=No+Image"}
           alt={product.title}
           className="shop-product-img"
         />
+        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <WishlistButton 
+            productId={product._id} 
+            className="bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 shadow-md rounded-full"
+            size="icon"
+          />
+        </div>
       </div>
 
       <div>
