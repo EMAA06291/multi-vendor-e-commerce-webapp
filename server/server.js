@@ -25,28 +25,19 @@ const vendorOrdersRouter = require("./routes/vendor/order-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
 const blogRouter = require("./routes/blog/blog-routes");
 
+const nodemailer = require("nodemailer"); // <-- إضافة Nodemailer
 
 // MongoDB connection configuration
-// Connection string should be provided via MONGODB_URI environment variable
-// Format: mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority
-// Get it from MongoDB Atlas: Database > Connect > Connect your application
-
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://nadimhassan99921_db_user:kE1ewe4AGuMcO7nn@cluster0.zey0gnm.mongodb.net/ecommerceDBproject?retryWrites=true&w=majority";
 
-// MongoDB connection options
-// Note: useNewUrlParser and useUnifiedTopology are deprecated in mongoose 8.x
-// They are enabled by default, so we don't need to specify them
 const mongooseOptions = {
-  // Connection pool settings
-  maxPoolSize: 10, // Maintain up to 10 socket connections
-  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  // Retry settings
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
   retryWrites: true,
   w: 'majority'
 };
 
-// Connect to MongoDB
 const connectDB = async () => {
   try {
     if (!MONGODB_URI) {
@@ -59,7 +50,6 @@ const connectDB = async () => {
     console.log(`   Host: ${conn.connection.host}`);
     console.log(`   Database: ${conn.connection.name}`);
     
-    // Handle connection events
     mongoose.connection.on('error', (err) => {
       console.error("❌ MongoDB connection error:", err.message);
     });
@@ -72,7 +62,6 @@ const connectDB = async () => {
       console.log("✅ MongoDB reconnected successfully");
     });
 
-    // Graceful shutdown
     process.on('SIGINT', async () => {
       await mongoose.connection.close();
       console.log("MongoDB connection closed through app termination");
@@ -83,35 +72,26 @@ const connectDB = async () => {
     console.error("❌ MongoDB connection error:", error.message);
     console.error("Please check your connection string in .env file or server.js");
     console.error("Error details:", error);
-    // Don't exit immediately - allow server to start even if DB connection fails
-    // This allows the app to continue running and attempt reconnection
     console.warn("⚠️  Server will continue to run. MongoDB will attempt to reconnect...");
   }
 };
 
-// Initialize database connection (non-blocking)
 connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    // List of allowed origins
     const allowedOrigins = [
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:3000",
     ];
-    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      // In development, allow all origins (remove this in production)
       callback(null, true);
     }
   },
@@ -130,8 +110,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Handle preflight requests explicitly
 app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
@@ -140,7 +118,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/admin/orders", adminOrderRouter);
 app.use("/api/admin/vendors", adminVendorRouter);
-
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopCartRouter);
 app.use("/api/shop/address", shopAddressRouter);
@@ -152,9 +129,36 @@ app.use("/api/vendor", shopVendorRouter);
 app.use("/api/shop/wishlist", shopWishlistRouter);
 app.use("/api/vendor/products", vendorProductsRouter);
 app.use("/api/vendor/orders", vendorOrdersRouter);
-
 app.use("/api/common/feature", commonFeatureRouter);
 app.use("/api/blog", blogRouter);
 
+// --------------------
+// Route لإرسال الإيميل
+// --------------------
+app.post("/api/send-email", async (req, res) => {
+  const { name, email, message } = req.body;
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER, // الإيميل اللي حطيته في .env
+        pass: process.env.EMAIL_PASS, // App password
+      },
+    });
+
+    await transporter.sendMail({
+      from: email,
+      to: process.env.EMAIL_USER,
+      subject: `New Contact Message from ${name}`,
+      text: message,
+    });
+
+    res.status(200).json({ success: true, message: "Email sent successfully!" });
+  } catch (error) {
+    console.error("Email error:", error);
+    res.status(500).json({ success: false, message: "Error sending email" });
+  }
+});
 
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));

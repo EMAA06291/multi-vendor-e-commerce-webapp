@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import apiClient, { API_ENDPOINTS } from "@/config/api";
+import apiClient from "@/config/api"; 
 import {
   FaFacebook,
   FaLinkedin,
@@ -27,7 +27,8 @@ const ContactPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await apiClient.post(API_ENDPOINTS.SHOP.CONTACT, formData);
+      
+      await apiClient.post("/api/send-email", formData);
       setStatus("✅ Message sent successfully!");
       setFormData({ name: "", email: "", message: "" });
     } catch (err) {
@@ -130,4 +131,3 @@ const ContactPage = () => {
 };
 
 export default ContactPage;
-
