@@ -115,28 +115,6 @@ function AdminDashboard() {
             Monitor your marketplace performance, track vendor activity, and analyze sales data
             in real-time.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={() => navigate("/admin/vendors")}
-              className="bg-white text-[#1E0F75] hover:bg-white/90"
-            >
-              Manage Vendors
-            </Button>
-            <Button
-              onClick={() => navigate("/admin/products")}
-              variant="outline"
-              className="border-white/40 text-white hover:bg-white/10"
-            >
-              Manage Products
-            </Button>
-        <Button
-              onClick={() => navigate("/admin/orders")}
-              variant="outline"
-              className="border-white/40 text-white hover:bg-white/10"
-        >
-              View Orders
-        </Button>
-      </div>
         </div>
       </section>
 

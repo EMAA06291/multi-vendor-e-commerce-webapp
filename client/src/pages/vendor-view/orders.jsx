@@ -103,141 +103,154 @@ function VendorOrders() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p>Loading orders...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3785D8]"></div>
       </div>
     );
   }
 
   if (!sellerInfo) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">No Vendor Account Found</h2>
-          <Button onClick={() => navigate("/shop/become-seller")}>
-            Become a Seller
-          </Button>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          No vendor account found
+        </p>
+        <Button onClick={() => navigate("/shop/become-seller")}>
+          Become a Seller
+        </Button>
       </div>
     );
   }
 
   if (sellerInfo.status !== "approved") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            {sellerInfo.status === "pending"
-              ? "Application Pending"
-              : sellerInfo.status === "rejected"
-              ? "Application Rejected"
-              : "Account Suspended"}
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Your vendor account must be approved to view orders.
-          </p>
-          <Button onClick={() => navigate("/shop/home")}>
-            Return to Shop
-          </Button>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Your vendor account must be approved to view orders.
+        </p>
+        <Button onClick={() => navigate("/shop/home")}>
+          Return to Shop
+        </Button>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Orders Management</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Orders Management
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
           Track and manage orders for your products
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Orders</CardTitle>
+      <Card className="rounded-[28px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden">
+        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-700">
+          <CardTitle className="text-xl text-gray-900 dark:text-white">
+            All Orders
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No orders found.</p>
+            <div className="text-center py-12 px-6">
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                No orders found.
+              </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Order Date</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Order Status</TableHead>
-                  <TableHead>Total Amount</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Details</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order._id}>
-                    <TableCell className="font-mono text-sm">
-                      {order._id.substring(0, 8)}...
-                    </TableCell>
-                    <TableCell>
-                      {order.orderDate
-                        ? new Date(order.orderDate).toLocaleDateString()
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell>{order.totalItems || 0} items</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`py-1 px-3 ${
-                          order.orderStatus === "confirmed" ||
-                          order.orderStatus === "delivered"
-                            ? "bg-green-500"
-                            : order.orderStatus === "rejected"
-                            ? "bg-red-600"
-                            : order.orderStatus === "inShipping"
-                            ? "bg-blue-500"
-                            : order.orderStatus === "inProcess"
-                            ? "bg-yellow-500"
-                            : "bg-gray-500"
-                        }`}
-                      >
-                        {order.orderStatus || "pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      ${order.vendorTotal?.toFixed(2) || "0.00"}
-                    </TableCell>
-                    <TableCell>
-                      <Dialog
-                        open={openDetailsDialog}
-                        onOpenChange={(open) => {
-                          setOpenDetailsDialog(open);
-                          if (!open) setOrderDetails(null);
-                        }}
-                      >
-                        <Button
-                          onClick={() => handleFetchOrderDetails(order._id)}
-                        >
-                          View Details
-                        </Button>
-                        {orderDetails && (
-                          <VendorOrderDetailsView
-                            orderDetails={orderDetails}
-                            sellerId={sellerInfo._id}
-                            onOrderUpdated={handleOrderUpdated}
-                          />
-                        )}
-                      </Dialog>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-[#1E0F75] via-[#2f3fbd] to-[#3785D8] text-white hover:bg-gradient-to-r hover:from-[#1E0F75] hover:via-[#2f3fbd] hover:to-[#3785D8]">
+                    <TableHead className="font-semibold text-white">
+                      Order ID
+                    </TableHead>
+                    <TableHead className="font-semibold text-white">
+                      Order Date
+                    </TableHead>
+                    <TableHead className="font-semibold text-white">
+                      Items
+                    </TableHead>
+                    <TableHead className="font-semibold text-white">
+                      Order Status
+                    </TableHead>
+                    <TableHead className="font-semibold text-white">
+                      Total Amount
+                    </TableHead>
+                    <TableHead className="font-semibold text-white text-right">
+                      Actions
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow
+                      key={order._id}
+                      className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    >
+                      <TableCell className="font-mono text-sm text-gray-900 dark:text-white">
+                        {order._id.substring(0, 8)}...
+                      </TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-400">
+                        {order.orderDate
+                          ? new Date(order.orderDate).toLocaleDateString()
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-400">
+                        {order.totalItems || 0} items
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`py-1 px-3 ${
+                            order.orderStatus === "confirmed" ||
+                            order.orderStatus === "delivered"
+                              ? "bg-green-500 text-white"
+                              : order.orderStatus === "rejected"
+                              ? "bg-red-600 text-white"
+                              : order.orderStatus === "inShipping"
+                              ? "bg-blue-500 text-white"
+                              : order.orderStatus === "inProcess"
+                              ? "bg-yellow-500 text-white"
+                              : "bg-gray-500 text-white"
+                          }`}
+                        >
+                          {order.orderStatus || "pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold text-gray-900 dark:text-white">
+                        ${order.vendorTotal?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Dialog
+                          open={openDetailsDialog}
+                          onOpenChange={(open) => {
+                            setOpenDetailsDialog(open);
+                            if (!open) setOrderDetails(null);
+                          }}
+                        >
+                          <Button
+                            onClick={() => handleFetchOrderDetails(order._id)}
+                            variant="outline"
+                            className="border-[#3785D8] text-[#3785D8] hover:bg-[#3785D8] hover:text-white"
+                          >
+                            View Details
+                          </Button>
+                          {orderDetails && (
+                            <VendorOrderDetailsView
+                              orderDetails={orderDetails}
+                              sellerId={sellerInfo._id}
+                              onOrderUpdated={handleOrderUpdated}
+                            />
+                          )}
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -246,5 +259,3 @@ function VendorOrders() {
 }
 
 export default VendorOrders;
-
-
