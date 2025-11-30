@@ -16,6 +16,7 @@ import {
   fetchAllFilteredProducts,
   fetchProductDetails,
 } from "@/store/shop/products-slice";
+import { getSearchResults, resetSearchResults } from "@/store/shop/search-slice";
 import { ArrowUpDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,8 +34,6 @@ function createSearchParamsHelper(filterParams) {
     }
   }
 
-  console.log(queryParams, "queryParams");
-
   return queryParams.join("&");
 }
 
@@ -44,6 +43,7 @@ function ShoppingListing() {
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
+  const { searchResults, isLoading: isSearchLoading } = useSelector((state) => state.shopSearch);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const [filters, setFilters] = useState({});
@@ -57,6 +57,7 @@ function ShoppingListing() {
   const { toast } = useToast();
 
   const categorySearchParam = searchParams.get("category");
+  const keywordParam = searchParams.get("keyword");
   const allowedFilterKeys = Object.keys(filterOptions);
 
   function sanitizeFilters(rawFilters = {}) {
@@ -98,7 +99,6 @@ function ShoppingListing() {
   }
 
   function handleGetProductDetails(getCurrentProductId) {
-    console.log(getCurrentProductId);
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
@@ -174,31 +174,56 @@ function ShoppingListing() {
     }
 
     setFilters(sanitizedStoredFilters);
-  }, [categorySearchParam]);
+    
+    // Trigger search immediately if keyword is present on initial load
+    if (keywordParam && keywordParam.trim()) {
+      dispatch(getSearchResults(keywordParam.trim()));
+    }
+  }, [categorySearchParam, keywordParam, dispatch]);
+
+  // Handle search keyword from URL
+  useEffect(() => {
+    if (keywordParam && keywordParam.trim()) {
+      dispatch(getSearchResults(keywordParam.trim()));
+    } else {
+      dispatch(resetSearchResults());
+    }
+  }, [keywordParam, dispatch]);
 
   useEffect(() => {
+    // Only update search params with filters if there's no keyword
+    // If keyword exists, preserve it in the URL
+    if (keywordParam) {
+      // Keep keyword in URL, don't overwrite with filters
+      return;
+    }
+    
     if (filters && Object.keys(filters).length > 0) {
       const createQueryString = createSearchParamsHelper(filters);
       setSearchParams(new URLSearchParams(createQueryString));
     }
-  }, [filters]);
+  }, [filters, keywordParam, setSearchParams]);
 
   useEffect(() => {
-    if (filters !== null && sort !== null) {
+    // Only fetch filtered products if there's no search keyword
+    if (filters !== null && sort !== null && !keywordParam) {
       dispatch(
         fetchAllFilteredProducts({ filterParams: filters, sortParams: sort })
       );
       setCurrentPage(1); // Reset to first page when filters/sort change
     }
-  }, [dispatch, sort, filters]);
+  }, [dispatch, sort, filters, keywordParam]);
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
   useEffect(() => {
-    if (productList && productList.length > 0) {
-      const prices = productList
+    // Use search results if keyword is present, otherwise use product list
+    const productsForPriceCalc = keywordParam && searchResults ? searchResults : productList;
+    
+    if (productsForPriceCalc && productsForPriceCalc.length > 0) {
+      const prices = productsForPriceCalc
         .map((product) =>
           product?.salePrice > 0 ? product.salePrice : product?.price
         )
@@ -229,14 +254,19 @@ function ShoppingListing() {
       setPriceLimits([0, 0]);
       setPriceRange([0, 0]);
     }
-  }, [productList]);
+  }, [productList, searchResults, keywordParam]);
 
   function handlePriceRangeChange(range) {
     setPriceRange(range);
     setCurrentPage(1);
   }
 
-  const filteredProducts = (productList || []).filter((product) => {
+  // Use search results if keyword is present, otherwise use filtered product list
+  const productsToDisplay = keywordParam 
+    ? (searchResults || []) // Use search results when searching (even if empty array)
+    : (productList || []);
+  
+  const filteredProducts = productsToDisplay.filter((product) => {
     const productPrice =
       product?.salePrice > 0 ? product.salePrice : product?.price;
 
@@ -250,8 +280,6 @@ function ShoppingListing() {
     );
   });
 
-  console.log(productList, "productListproductListproductList");
-
   return (
     <div className="min-h-screen bg-[#EAF2FB] dark:bg-[#0F172A]">
       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
@@ -264,10 +292,12 @@ function ShoppingListing() {
       />
       <div className="bg-background w-full rounded-lg shadow-sm">
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-extrabold">All Products</h2>
+          <h2 className="text-lg font-extrabold">
+            {keywordParam ? `Search Results for "${keywordParam}"` : "All Products"}
+          </h2>
           <div className="flex items-center gap-3">
             <span className="text-muted-foreground">
-              {filteredProducts.length} Products
+              {filteredProducts.length} {filteredProducts.length === 1 ? "Product" : "Products"}
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -296,7 +326,11 @@ function ShoppingListing() {
           </div>
         </div>
         <div className="shop-products-grid">
-          {filteredProducts && filteredProducts.length > 0 ? (
+          {isSearchLoading && keywordParam ? (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px" }}>
+              <p className="text-muted-foreground">Searching...</p>
+            </div>
+          ) : filteredProducts && filteredProducts.length > 0 ? (
             <>
               {(() => {
                 const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);

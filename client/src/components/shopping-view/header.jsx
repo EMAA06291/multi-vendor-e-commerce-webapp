@@ -110,7 +110,7 @@ function ShoppingHeader() {
   const handleSearch = (event) => {
     event.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/shop/search?keyword=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/shop/listing?keyword=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
