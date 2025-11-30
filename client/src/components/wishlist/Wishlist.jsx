@@ -5,16 +5,19 @@ import { useToast } from "@/components/ui/use-toast";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { useDispatch } from "react-redux";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { fetchProductDetails } from "@/store/shop/products-slice";
+import { fetchProductDetails, setProductDetails } from "@/store/shop/products-slice";
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
 
 const Wishlist = () => {
   const { user } = useSelector((state) => state.auth);
+  const { productDetails } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [wishlistProducts, setWishlistProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removingIds, setRemovingIds] = useState(new Set());
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -23,6 +26,12 @@ const Wishlist = () => {
       setLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (productDetails !== null) {
+      setOpenDetailsDialog(true);
+    }
+  }, [productDetails]);
 
   const fetchWishlist = async () => {
     try {
@@ -87,7 +96,6 @@ const Wishlist = () => {
 
   const handleGetProductDetails = (productId) => {
     dispatch(fetchProductDetails(productId));
-    navigate(`/shop/products/${productId}`);
   };
 
   const handleAddToCart = async (productId) => {
@@ -319,6 +327,16 @@ const Wishlist = () => {
           </tbody>
         </table>
       </div>
+      <ProductDetailsDialog
+        open={openDetailsDialog}
+        setOpen={(open) => {
+          setOpenDetailsDialog(open);
+          if (!open) {
+            dispatch(setProductDetails());
+          }
+        }}
+        productDetails={productDetails}
+      />
     </div>
   );
 };
