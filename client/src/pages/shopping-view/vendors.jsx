@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Store, Star, MapPin, Package } from "lucide-react";
+import { Store, Star, MapPin, Package, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import apiClient, { API_ENDPOINTS } from "@/config/api";
 import { motion } from "framer-motion";
 import AOS from "aos";
@@ -11,8 +12,11 @@ import "aos/dist/aos.css";
 function VendorsPage() {
   const navigate = useNavigate();
   const [vendors, setVendors] = useState([]);
+  const [allVendors, setAllVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     AOS.init({
@@ -37,7 +41,9 @@ function VendorsPage() {
         params: { limit: 100 },
       });
       if (response.data.success) {
-        setVendors(response.data.vendors || []);
+        const vendorsList = response.data.vendors || [];
+        setAllVendors(vendorsList);
+        setVendors(vendorsList);
       }
     } catch (err) {
       console.error("Error fetching vendors:", err);
@@ -49,6 +55,50 @@ function VendorsPage() {
 
   const handleVendorClick = (sellerId) => {
     navigate(`/shop/vendor/${sellerId}`);
+  };
+
+  // Get unique categories from vendors
+  const categories = ["All", ...new Set(allVendors.map((v) => v.storeCategory).filter(Boolean))];
+
+  // Filter vendors based on search query and selected category
+  useEffect(() => {
+    let filtered = [...allVendors];
+
+    // Filter by category
+    if (selectedCategory !== "All") {
+      filtered = filtered.filter(
+        (vendor) => vendor.storeCategory === selectedCategory
+      );
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((vendor) => {
+        const storeName = (vendor.storeName || "").toLowerCase();
+        const category = (vendor.storeCategory || "").toLowerCase();
+        const description = (vendor.description || "").toLowerCase();
+        const businessType = (vendor.businessType || "").toLowerCase();
+
+        return (
+          storeName.includes(query) ||
+          category.includes(query) ||
+          description.includes(query) ||
+          businessType.includes(query)
+        );
+      });
+    }
+
+    setVendors(filtered);
+  }, [searchQuery, selectedCategory, allVendors]);
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+  };
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setSearchQuery(""); // Clear search when category is selected
   };
 
   const cardInView = {
@@ -109,26 +159,94 @@ function VendorsPage() {
         </div>
       </section>
 
+      {/* Search Bar */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Search vendors by name, category, or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 pr-12 h-14 text-base rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-[#3785D8] dark:focus:border-[#BF8CE1] text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-6">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Browse by Category
+            </h2>
+            <p className="text-gray-700 dark:text-slate-200">
+              Find vendors in your preferred category
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategorySelect(category)}
+                className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-300 ${
+                  selectedCategory === category
+                    ? "text-white shadow-lg transform scale-105"
+                    : "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 hover:border-[#3785D8] dark:hover:border-[#BF8CE1]"
+                }`}
+                style={
+                  selectedCategory === category
+                    ? {
+                        background: "linear-gradient(135deg,#1C1DAB,#3785D8)",
+                      }
+                    : {}
+                }
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Vendors Grid */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <p className="text-gray-700 dark:text-slate-200 text-center">
-              {vendors.length === 0
-                ? "No vendors available at the moment"
-                : `Showing ${vendors.length} vendor${vendors.length > 1 ? "s" : ""}`}
-            </p>
-          </div>
 
           {vendors.length === 0 ? (
             <div className="text-center py-20">
               <Store className="w-24 h-24 mx-auto mb-6 text-gray-400 dark:text-slate-600" />
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-                No vendors found
+                {searchQuery ? "No vendors found" : "No vendors found"}
               </h2>
               <p className="text-gray-600 dark:text-slate-400">
-                Check back soon for new vendors!
+                {searchQuery
+                  ? `No vendors match your search "${searchQuery}". Try a different search term.`
+                  : "Check back soon for new vendors!"}
               </p>
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="mt-4 px-6 py-2 rounded-lg text-white font-semibold transition-all"
+                  style={{
+                    background: "linear-gradient(135deg,#1C1DAB,#3785D8)",
+                  }}
+                >
+                  Clear Search
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -11,7 +11,7 @@ const ShopProductCard = ({ product, onAdd, onViewDetails }) => {
   const brandLabel = product.brand ? (brandOptionsMap[product.brand] || product.brand) : null;
 
   return (
-    <div className="shop-product-card dark:bg-[#1E293B] dark:text-white">
+    <div className="shop-product-card border border-gray-300 dark:border-transparent p-4 rounded-lg dark:bg-[#1E293B] dark:text-white ">
       <div className="shop-product-img-box" onClick={() => onViewDetails && onViewDetails(product._id)}>
         <img
           src={product.image || "https://via.placeholder.com/300x180?text=No+Image"}

@@ -30,13 +30,15 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { Label } from "../ui/label";
 import { useTheme } from "@/contexts/ThemeContext";
+import apiClient, { API_ENDPOINTS } from "@/config/api";
+import { LayoutDashboard } from "lucide-react";
 
 const shoppingViewHeaderMenuItems = [
   { id: "home", label: "Home", path: "/" },
   { id: "products", label: "Products", path: "/shop/listing" },
+  { id: "vendors", label: "Vendors", path: "/shop/vendors" },
   { id: "blog", label: "Blog", path: "/shop/blog" },
   { id: "contact", label: "Contact", path: "/shop/contact" },
-  { id: "become-seller", label: "Become a Seller", path: "/shop/become-seller" },
 ];
 
 function ShoppingHeader() {
@@ -48,12 +50,47 @@ function ShoppingHeader() {
 
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isVendor, setIsVendor] = useState(false);
+  const [isCheckingVendor, setIsCheckingVendor] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchCartItems(user.id));
+      checkVendorStatus();
+    } else {
+      setIsVendor(false);
     }
   }, [dispatch, user?.id]);
+
+  const checkVendorStatus = async () => {
+    if (!user?.id || user?.role === "admin") {
+      setIsVendor(false);
+      return;
+    }
+
+    try {
+      setIsCheckingVendor(true);
+      const response = await apiClient.get(
+        API_ENDPOINTS.SHOP.SELLER + `/${user.id}`
+      );
+      if (response.data.success && response.data.data) {
+        // Check if seller status is approved
+        setIsVendor(response.data.data.status === "approved");
+      } else {
+        setIsVendor(false);
+      }
+    } catch (error) {
+      // If 404, user is not a vendor
+      if (error.response?.status === 404) {
+        setIsVendor(false);
+      } else {
+        console.error("Error checking vendor status:", error);
+        setIsVendor(false);
+      }
+    } finally {
+      setIsCheckingVendor(false);
+    }
+  };
 
   const cartCount = useMemo(
     () => (cartItems?.items ? cartItems.items.length : 0),
@@ -112,12 +149,21 @@ function ShoppingHeader() {
               <UserCog className="mr-2 h-4 w-4" />
               Account
             </DropdownMenuItem>
-            {user?.role === "admin" ? (
-              <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
-                <Store className="mr-2 h-4 w-4" />
-                Admin Dashboard
+            {(user?.role === "admin" || isVendor) && (
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    user?.role === "admin"
+                      ? "/admin/dashboard"
+                      : "/vendor/dashboard"
+                  )
+                }
+              >
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Dashboard
               </DropdownMenuItem>
-            ) : (
+            )}
+            {!isVendor && user?.role !== "admin" && (
               <DropdownMenuItem onClick={() => navigate("/shop/become-seller")}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Become a Seller
