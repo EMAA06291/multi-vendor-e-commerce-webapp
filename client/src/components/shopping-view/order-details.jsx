@@ -44,7 +44,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                   <span className="font-mono text-sm text-gray-900 dark:text-white">
                     {orderDetails?._id || "N/A"}
                   </span>
-                </div>
+          </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-slate-400 flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
@@ -53,7 +53,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                   <span className="text-sm text-gray-900 dark:text-white">
                     {orderDetails?.orderDate ? orderDetails.orderDate.split("T")[0] : "N/A"}
                   </span>
-                </div>
+          </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-slate-400 flex items-center gap-2">
                     <DollarSign className="w-4 h-4" />
@@ -62,7 +62,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                   <span className="text-2xl font-bold bg-gradient-to-r from-[#3785D8] to-[#BF8CE1] text-transparent bg-clip-text">
                     ${orderDetails?.totalAmount?.toFixed(2) || "0.00"}
                   </span>
-                </div>
+          </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-slate-400 flex items-center gap-2">
                     <CreditCard className="w-4 h-4" />
@@ -71,7 +71,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {paymentMethodLabel}
                   </span>
-                </div>
+          </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-slate-400">Payment Status</span>
                   <Badge
@@ -85,14 +85,14 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                   >
                     {orderDetails?.paymentStatus || "pending"}
                   </Badge>
-                </div>
+          </div>
                 <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700">
                   <span className="text-gray-600 dark:text-slate-400">Order Status</span>
-                  <Badge
+              <Badge
                     className={`py-1.5 px-3 rounded-full font-medium ${
-                      orderDetails?.orderStatus === "confirmed"
+                  orderDetails?.orderStatus === "confirmed"
                         ? "bg-emerald-500 text-white"
-                        : orderDetails?.orderStatus === "rejected"
+                    : orderDetails?.orderStatus === "rejected"
                         ? "bg-red-600 text-white"
                         : orderDetails?.orderStatus === "pending"
                         ? "bg-amber-500 text-white"
@@ -100,7 +100,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                     }`}
                   >
                     {orderDetails?.orderStatus || "pending"}
-                  </Badge>
+              </Badge>
                 </div>
               </div>
             </CardContent>
@@ -146,8 +146,8 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                             ${(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
-                      </div>
-                    </div>
+          </div>
+        </div>
                   ))
                 ) : (
                   <div className="text-center py-8 text-gray-600 dark:text-slate-400">
@@ -172,8 +172,8 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                     <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
                       Delivery information
                     </p>
-                  </div>
-                </div>
+          </div>
+        </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-2 text-gray-900 dark:text-white">
@@ -194,7 +194,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                       </p>
                     </div>
                   )}
-                </div>
+            </div>
               </CardContent>
             </Card>
           )}

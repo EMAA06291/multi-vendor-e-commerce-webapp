@@ -1,5 +1,7 @@
 import { Button } from "../ui/button";
-import { Card, CardContent, CardFooter } from "../ui/card";
+import { Star, Edit, Trash2 } from "lucide-react";
+import { categoryOptionsMap } from "@/config";
+import "@/styles/shop-listing.css";
 
 function AdminProductTile({
   product,
@@ -8,50 +10,78 @@ function AdminProductTile({
   setCurrentEditedId,
   handleDelete,
 }) {
+  const displayPrice = product?.salePrice > 0 ? product.salePrice : product?.price;
+  const originalPrice = product?.salePrice > 0 ? product?.price : null;
+  const rating = product?.averageReview || 0;
+  const reviews = product?.reviews || product?.reviewsCount || 0;
+  const categoryLabel = product?.category ? (categoryOptionsMap[product.category] || product.category) : null;
+
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <div>
-        <div className="relative">
-          <img
-            src={product?.image}
-            alt={product?.title}
-            className="w-full h-[300px] object-cover rounded-t-lg"
-          />
-        </div>
-        <CardContent>
-          <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
-          {product?.sellerId && (
-            <p className="text-sm text-muted-foreground mb-2">
-              Vendor: {product.sellerId.storeName || "N/A"}
-            </p>
-          )}
-          <div className="flex justify-between items-center mb-2">
-            <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
-            >
-              ${product?.price}
-            </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-bold">${product?.salePrice}</span>
-            ) : null}
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between items-center">
-          <Button
-            onClick={() => {
-              setOpenCreateProductsDialog(true);
-              setCurrentEditedId(product?._id);
-              setFormData(product);
-            }}
-          >
-            Edit
-          </Button>
-          <Button onClick={() => handleDelete(product?._id)}>Delete</Button>
-        </CardFooter>
+    <div className="shop-product-card border border-gray-300 dark:border-transparent p-4 rounded-lg dark:bg-[#1E293B] dark:text-white">
+      <div className="shop-product-img-box relative">
+        <img
+          src={product?.image || "https://via.placeholder.com/300x180?text=No+Image"}
+          alt={product?.title}
+          className="shop-product-img"
+        />
       </div>
-    </Card>
+
+      <div>
+        <h3 className="shop-product-name dark:text-white">
+          {product?.title}
+        </h3>
+        {product?.sellerId && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Vendor: {product.sellerId.storeName || "N/A"}
+          </p>
+        )}
+        <div className="shop-product-rating dark:text-gray-300">
+          <Star className="shop-star-icon" fill="#f5c518" color="#f5c518" size={14} />
+          {rating.toFixed(1)} <span className="dark:text-gray-400">({reviews})</span>
+        </div>
+        <div className="shop-product-price dark:text-white">
+          ${displayPrice?.toFixed(2) || "0.00"}
+          {originalPrice && (
+            <span className="shop-original-price dark:text-gray-400"> ${originalPrice.toFixed(2)}</span>
+          )}
+        </div>
+
+        {categoryLabel && (
+          <div className="shop-tag-container">
+            <span className="shop-tag dark:bg-slate-700 dark:text-white">{categoryLabel}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-2 mt-4">
+        <Button
+          onClick={() => {
+            setOpenCreateProductsDialog(true);
+            setCurrentEditedId(product?._id);
+            setFormData(product);
+          }}
+          className="flex-1 shop-add-btn"
+          style={{ marginTop: 0 }}
+        >
+          <Edit className="w-4 h-4 mr-2" />
+          Edit
+        </Button>
+        <Button
+          onClick={() => handleDelete(product?._id)}
+          variant="destructive"
+          className="flex-1"
+          style={{
+            background: "#dc2626",
+            marginTop: 0,
+            padding: "10px 12px",
+            borderRadius: "10px",
+          }}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete
+        </Button>
+      </div>
+    </div>
   );
 }
 
