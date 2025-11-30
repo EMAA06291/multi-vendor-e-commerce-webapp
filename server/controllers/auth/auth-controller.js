@@ -181,4 +181,104 @@ const uploadProfilePicture = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, logoutUser, authMiddleware, updateProfilePicture, uploadProfilePicture };
+//update user account details
+const updateAccountDetails = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { userName, email, currentPassword, newPassword } = req.body;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update userName if provided
+    if (userName !== undefined && userName.trim() !== "") {
+      // Check if userName is already taken by another user
+      const existingUser = await User.findOne({ 
+        userName: userName.trim(),
+        _id: { $ne: userId }
+      });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already taken",
+        });
+      }
+      user.userName = userName.trim();
+    }
+
+    // Update email if provided
+    if (email !== undefined && email.trim() !== "") {
+      // Check if email is already taken by another user
+      const existingUser = await User.findOne({ 
+        email: email.trim(),
+        _id: { $ne: userId }
+      });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already taken",
+        });
+      }
+      user.email = email.trim();
+    }
+
+    // Update password if provided
+    if (newPassword !== undefined && newPassword.trim() !== "") {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is required to change password",
+        });
+      }
+
+      // Verify current password
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+      }
+
+      // Hash new password
+      const hashPassword = await bcrypt.hash(newPassword, 12);
+      user.password = hashPassword;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Account details updated successfully",
+      data: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating account details:", error);
+    if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `${field} already exists`,
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: "Error updating account details",
+    });
+  }
+};
+
+module.exports = { registerUser, loginUser, logoutUser, authMiddleware, updateProfilePicture, uploadProfilePicture, updateAccountDetails };

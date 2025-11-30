@@ -6,6 +6,7 @@ const {
   authMiddleware,
   updateProfilePicture,
   uploadProfilePicture,
+  updateAccountDetails,
 } = require("../../controllers/auth/auth-controller");
 const { upload } = require("../../helpers/cloudinary");
 const User = require("../../models/User");
@@ -39,5 +40,6 @@ router.get("/check-auth", authMiddleware, async (req, res) => {
 });
 router.post("/upload-profile-picture", upload.single("my_file"), uploadProfilePicture);
 router.put("/update-profile-picture/:userId", authMiddleware, updateProfilePicture);
+router.put("/update-account/:userId", authMiddleware, updateAccountDetails);
 
 module.exports = router;

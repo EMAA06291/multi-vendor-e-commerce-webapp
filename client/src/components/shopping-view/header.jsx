@@ -23,7 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { logoutUser } from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
 import { useEffect, useMemo, useState } from "react";
@@ -134,7 +134,14 @@ function ShoppingHeader() {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="bg-gradient-primary text-white">
+            <Avatar className="bg-gradient-primary text-white cursor-pointer">
+              {user?.profilePic && (
+                <AvatarImage 
+                  src={user.profilePic} 
+                  alt={user?.userName || "User"} 
+                  className="object-cover"
+                />
+              )}
               <AvatarFallback className="bg-black/80 text-white font-semibold">
                 {user?.userName?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
